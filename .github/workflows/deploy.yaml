@@ -20,9 +20,6 @@ jobs:
 
     - name: Install dependencies
       run: composer install --no-dev --prefer-dist --no-scripts --no-progress --no-suggest
-    
-    - name: Copiar archivo .env.example
-      run: cp .env.example .env
 
     - name: Configure env
       env:
@@ -30,10 +27,7 @@ jobs:
         FTP_USERNAME: ${{ secrets.FTP_USERNAME }}
         FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
         FTP_DESTINATION: ${{ secrets.FTP_DESTINATION }}
-      run: |
-        php artisan key:generate
-        php artisan config:cache
-        php artisan migrate
+      run: php artisan config:cache
 
     - name: Deploy to Hostinger
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
