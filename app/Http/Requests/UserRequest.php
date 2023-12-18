@@ -31,7 +31,9 @@ class UserRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:100', Rule::unique('users', 'name')->ignore($userId)],
             'email' => ['required', 'email', 'string', 'max:100', Rule::unique('users', 'email')->ignore($userId)],
-            'password' => ['required', 'min:6']
+            'password' => ['required', 'min:6'],
+            'role' => ['required', Rule::exists('roles', 'name'),
+            ]
         ];
     }
 
@@ -40,6 +42,7 @@ class UserRequest extends FormRequest
         return [
             'name.unique' => __('The user already exists.'),
             'email.unique' => __('The email already exists.'),
+            'role.exists' => __('The role does not exists.')
         ];
     }
 

@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use Spatie\FlareClient\Api;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use Spatie\Permission\Models\Role;
 
 
 
@@ -45,7 +46,7 @@ class UserController extends Controller
             $user->email = $request->input('email');
             $user->password =  Hash::make($request->input('password'));
             $user->save();
-            //$user->roles()->sync($request->input('role'));
+            $user->roles()->sync(Role::where('name', $request->input('role'))->first());
 
             return response()->json([
                 'message' => 'User created successfully',

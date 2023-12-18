@@ -3,6 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\RoleController;
 
 /*
 |--------------------------------------------------------------------------
@@ -32,5 +33,7 @@ Route::get('/user/read/{id}', [UserController::class, 'read'])->name('user.read'
 Route::delete('/user/delete/{id}', [UserController::class, 'delete'])->name('user.delete');
 Route::get('/user/search/{name}', [UserController::class, 'search'])->name('user.search');
 Route::get('/user/hintSearch/{hint}', [UserController::class, 'hintSearch'])->name('user.hintSearch');
+
+Route::apiResource('roles', RoleController::class);
 
 // Route::apiResource('user', UserController::class);
