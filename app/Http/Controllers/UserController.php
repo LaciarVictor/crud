@@ -23,7 +23,16 @@ class UserController extends Controller
     public function index()
     {
         try {
-            $users = User::select('id', 'name', 'email', 'created_at', 'updated_at')->get();
+
+            $users = User::select('id', 'name', 'email', 'created_at', 'updated_at')
+                ->with('roles:name')
+                ->get()
+                ->map(function ($user) {
+                    $user->rol = $user->roles[0]->name;
+                    unset($user->roles);
+                    return $user;
+                });
+
 
             return response()->json($users);
         } catch (\Exception $e) {
@@ -94,12 +103,40 @@ class UserController extends Controller
                 $user->password = Hash::make($request->input('password'));
             }
 
+        // Actualizar el rol del usuario si se envía en la solicitud
+        if ($request->has('rol')) {
+            $rol = Role::where('name', $request->input('rol'))->first();
+            if ($rol) {
+                $user->roles()->sync([$rol->id]);
+            }
+        }
+
+
+
+
             $user->save();
 
-            return response()->json([
-                'message' => 'User updated successfully',
-                'user' => $user,
-            ], 200);
+// Obtener el rol actualizado del usuario
+$user->load('roles:name');
+
+// Construir la respuesta JSON
+$response = [
+    'message' => 'User updated successfully',
+    'user' => [
+        'id' => $user->id,
+        'name' => $user->name,
+        'email' => $user->email,
+        'created_at' => $user->created_at,
+        'updated_at' => $user->updated_at,
+        'rol' => $user->roles[0]->name,
+    ],
+];
+
+return response()->json($response, 200);
+
+
+
+
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'message' => 'User not found',
@@ -164,6 +201,10 @@ class UserController extends Controller
 
         try {
             $user = User::findOrFail($id);
+
+            // Eliminar la relación del usuario con el rol
+            $user->roles()->detach();
+
             $user->delete();
 
             return response()->json([
