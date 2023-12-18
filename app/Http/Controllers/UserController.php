@@ -15,13 +15,14 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 class UserController extends Controller
 {
 
-    /**
-     * Display a listing of the resource.
-     */
+
+
+
+    //Lista todos los usuarios registrados en el dominio.
     public function index()
     {
         try {
-            $users = User::select('id','name', 'email','created_at','updated_at')->get();
+            $users = User::select('id', 'name', 'email', 'created_at', 'updated_at')->get();
 
             return response()->json($users);
         } catch (\Exception $e) {
@@ -32,9 +33,10 @@ class UserController extends Controller
         }
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
+
+
+
+    //Guarda en la DB un usuario pasado como JSON. El UserRequest evalúa si están todos los campos.
     public function create(UserRequest $request)
     {
         try {
@@ -43,6 +45,7 @@ class UserController extends Controller
             $user->email = $request->input('email');
             $user->password =  Hash::make($request->input('password'));
             $user->save();
+            //$user->roles()->sync($request->input('role'));
 
             return response()->json([
                 'message' => 'User created successfully',
@@ -55,9 +58,11 @@ class UserController extends Controller
             ], 500);
         }
     }
-    /**
-     * Display the specified resource.
-     */
+
+
+
+
+    //Busca el usuario por su ID
     public function read(string $id)
     {
 
@@ -72,9 +77,9 @@ class UserController extends Controller
     }
 
 
-    /**
-     * Update the specified resource in storage.
-     */
+
+
+    //Actualiza los datos del usuario
     public function update(UserRequest $request, string $id)
     {
         try {
@@ -102,19 +107,21 @@ class UserController extends Controller
     }
 
 
+
+
+    //Busca un usuario por su nombre exacto. /search/Victor%20Romero
     public function search(string $nombre)
     {
         try {
-            $user = User::where('name', 'LIKE' ,urldecode($nombre))->first();
-    
+            $user = User::where('name', 'LIKE', urldecode($nombre))->first();
+
             if (!$user) {
                 return response()->json([
                     'message' => 'User not found',
                 ], 404);
             }
-    
-            return response()->json($user);
 
+            return response()->json($user);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'An error occurred',
@@ -123,19 +130,22 @@ class UserController extends Controller
         }
     }
 
+
+
+
+    //busca al usuario por una pista de su nombre.
     public function hintSearch(string $hint)
     {
         try {
-            $user = User::where('name', 'LIKE' ,'%'.urldecode($hint).'%')->get();
-    
+            $user = User::where('name', 'LIKE', '%' . urldecode($hint) . '%')->get();
+
             if (!$user) {
                 return response()->json([
                     'message' => 'User not found',
                 ], 404);
             }
-    
-            return response()->json($user);
 
+            return response()->json($user);
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'An error occurred',
@@ -147,10 +157,7 @@ class UserController extends Controller
 
 
 
-
-    /**
-     * Remove the specified resource from storage.
-     */
+    //Borra un usuario
     public function delete(string $id)
     {
 
@@ -172,8 +179,4 @@ class UserController extends Controller
             ], 500);
         }
     }
-
-
 }
-
-
