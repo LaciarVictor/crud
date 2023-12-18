@@ -28,7 +28,6 @@ jobs:
         FTP_PASSWORD: ${{ secrets.FTP_PASSWORD }}
         FTP_DESTINATION: ${{ secrets.FTP_DESTINATION }}
       run: php artisan config:cache
-      run: php artisan migrate
 
     - name: Deploy to Hostinger
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
