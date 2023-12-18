@@ -28,7 +28,7 @@ class UserController extends Controller
                 ->with('roles:name')
                 ->get()
                 ->map(function ($user) {
-                    $user->rol = $user->roles[0]->name;
+                    $user->role = $user->roles[0]->name;
                     unset($user->roles);
                     return $user;
                 });
