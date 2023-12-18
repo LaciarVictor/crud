@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 
 
+
 class UserController extends Controller
 {
 
@@ -20,7 +21,7 @@ class UserController extends Controller
     public function index()
     {
         try {
-            $users = User::select('name', 'email')->get();
+            $users = User::select('id','name', 'email','created_at','updated_at')->get();
 
             return response()->json($users);
         } catch (\Exception $e) {
