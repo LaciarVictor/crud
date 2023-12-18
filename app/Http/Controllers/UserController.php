@@ -104,8 +104,8 @@ class UserController extends Controller
             }
 
         // Actualizar el rol del usuario si se envía en la solicitud
-        if ($request->has('rol')) {
-            $rol = Role::where('name', $request->input('rol'))->first();
+        if ($request->has('role')) {
+            $rol = Role::where('name', $request->input('role'))->first();
             if ($rol) {
                 $user->roles()->sync([$rol->id]);
             }
@@ -128,7 +128,7 @@ $response = [
         'email' => $user->email,
         'created_at' => $user->created_at,
         'updated_at' => $user->updated_at,
-        'rol' => $user->roles[0]->name,
+        'role' => $user->roles[0]->name,
     ],
 ];
 
