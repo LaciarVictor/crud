@@ -208,6 +208,7 @@ class UserController extends Controller
             $role = $user->roles->first();
 
             return [
+                'id'=> $user->id,
                 'name' => $user->name,
                 'email' => $user->email,
                 'created_at' => $user->created_at,
@@ -225,6 +226,7 @@ class UserController extends Controller
                 $role = $user->roles->first();
 
                 return [
+                    'id'=> $user->id,
                     'name' => $user->name,
                     'email' => $user->email,
                     'created_at' => $user->created_at,
