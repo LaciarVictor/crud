@@ -31,7 +31,7 @@ class UserRequest extends FormRequest
         return [
             'name' => ['required', 'string', 'max:100', Rule::unique('users', 'name')->ignore($userId)],
             'email' => ['required', 'email', 'string', 'max:100', Rule::unique('users', 'email')->ignore($userId)],
-            'password' => ['required', 'min:6'],
+            'password' => ['required', 'min:6', 'confirmed'],
             'role' => ['required', Rule::exists('roles', 'id'),
             ]
         ];
