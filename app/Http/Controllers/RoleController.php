@@ -14,10 +14,11 @@ class RoleController extends Controller
      */
     public function index()
     {
+        $roles = Role::all();
 
         //Devolver los roles por nombres ordenados por id.
        // $roles = Role::orderBy('id')->pluck('name');
-        $roles = Role::orderByDesc('id')->pluck('name');
+       // $roles = Role::orderByDesc('id')->pluck('name');
 
         return response()->json($roles);
     }

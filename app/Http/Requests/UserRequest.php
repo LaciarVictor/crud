@@ -32,7 +32,7 @@ class UserRequest extends FormRequest
             'name' => ['required', 'string', 'max:100', Rule::unique('users', 'name')->ignore($userId)],
             'email' => ['required', 'email', 'string', 'max:100', Rule::unique('users', 'email')->ignore($userId)],
             'password' => ['required', 'min:6'],
-            'role' => ['required', Rule::exists('role', 'name'),
+            'role' => ['required', Rule::exists('roles', 'id'),
             ]
         ];
     }

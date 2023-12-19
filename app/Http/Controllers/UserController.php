@@ -24,22 +24,10 @@ class UserController extends Controller
     {
         try {
 
-            $users = User::select('id', 'name', 'email', 'created_at', 'updated_at')
-                ->with('roles:name')
-                ->get()
-                ->map(function ($user) {
-                    $user->role = $user->roles[0]->name;
-                    unset($user->roles);
-                    return $user;
-                });
-
-
-            return response()->json($users);
+            return $this->getUsersWithRoles();
         } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Error retrieving users',
-                'error' => $e->getMessage(),
-            ], 500);
+
+            return response()->json(['message' => 'Error retrieving users', 'error' => $e->getMessage(),], 500);
         }
     }
 
@@ -55,7 +43,7 @@ class UserController extends Controller
             $user->email = $request->input('email');
             $user->password =  Hash::make($request->input('password'));
             $user->save();
-            $user->roles()->sync(Role::where('name', $request->input('role'))->first());
+            $user->roles()->sync($request->input('role'));
 
             return response()->json([
                 'message' => 'User created successfully',
@@ -77,9 +65,10 @@ class UserController extends Controller
     {
 
         try {
-            $user = User::findOrFail($id);
-            return response()->json($user);
+
+            return $this->getUsersWithRoles($id);
         } catch (ModelNotFoundException $e) {
+
             return response()->json([
                 'message' => 'Read error: user id not found.',
             ], 404);
@@ -103,40 +92,21 @@ class UserController extends Controller
                 $user->password = Hash::make($request->input('password'));
             }
 
-        // Actualizar el rol del usuario si se envía en la solicitud
-        if ($request->has('role')) {
-            $rol = Role::where('name', $request->input('role'))->first();
-            if ($rol) {
-                $user->roles()->sync([$rol->id]);
-            }
-        }
+            // Actualizar el rol del usuario si se envía en la solicitud
 
-
-
-
+            $user->roles()->detach();
+            $user->roles()->sync([$request->input('role')]);
             $user->save();
 
-// Obtener el rol actualizado del usuario
-$user->load('roles:name');
 
-// Construir la respuesta JSON
-$response = [
-    'message' => 'User updated successfully',
-    'user' => [
-        'id' => $user->id,
-        'name' => $user->name,
-        'email' => $user->email,
-        'created_at' => $user->created_at,
-        'updated_at' => $user->updated_at,
-        'role' => $user->roles[0]->name,
-    ],
-];
-
-return response()->json($response, 200);
+            // Construir la respuesta JSON
+            $response = [
+                'message' => 'User updated successfully',
+                'user' => $this->getUsersWithRoles($user->id)
+            ];
 
 
-
-
+            return response()->json($response, 200);
         } catch (ModelNotFoundException $e) {
             return response()->json([
                 'message' => 'User not found',
@@ -159,7 +129,7 @@ return response()->json($response, 200);
                 ], 404);
             }
 
-            return response()->json($user);
+            return response()->json($this->getUsersWithRoles($user->id));
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'An error occurred',
@@ -183,7 +153,7 @@ return response()->json($response, 200);
                 ], 404);
             }
 
-            return response()->json($user);
+            return response()->json($this->getUsersWithRoles($user->id));
         } catch (\Exception $e) {
             return response()->json([
                 'message' => 'An error occurred',
@@ -219,6 +189,49 @@ return response()->json($response, 200);
                 'message' => 'Error deleting user',
                 'error' => $e->getMessage(),
             ], 500);
+        }
+    }
+
+
+
+
+
+    private function getUsersWithRoles($userId = null)
+    {
+
+
+        //Tengo un id de usuario, devolver el usuario
+        if ($userId !== null) {
+            $user = User::with('roles:id')->find($userId);
+
+
+            $role = $user->roles->first();
+
+            return [
+                'name' => $user->name,
+                'email' => $user->email,
+                'created_at' => $user->created_at,
+                'updated_at' => $user->updated_at,
+                'role' => $role ? $role->id : null,
+            ];
+        }
+        //no tengo un id, devolver todos los usuarios
+        else {
+
+
+            $users = User::with('roles:id')->get();
+
+            return $users->map(function ($user) {
+                $role = $user->roles->first();
+
+                return [
+                    'name' => $user->name,
+                    'email' => $user->email,
+                    'created_at' => $user->created_at,
+                    'updated_at' => $user->updated_at,
+                    'role' => $role ? $role->id : null,
+                ];
+            });
         }
     }
 }
