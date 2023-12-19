@@ -3,23 +3,18 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\UserRequest;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
-use Spatie\FlareClient\Api;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Spatie\Permission\Models\Role;
-
-
 
 
 class UserController extends Controller
 {
 
 
-
-
-    //Lista todos los usuarios registrados en el dominio.
+    /**
+     * Muestra la lista de usuarios.
+     */
     public function index()
     {
         try {
@@ -27,148 +22,89 @@ class UserController extends Controller
             return $this->getUsersWithRoles();
         } catch (\Exception $e) {
 
-            return response()->json(['message' => 'Error retrieving users', 'error' => $e->getMessage(),], 500);
+            return response()->json(['message' => 'Error al recuperar usuarios', 
+            'error' => $e->getMessage(),], 500);
         }
     }
 
 
 
 
-    //Guarda en la DB un usuario pasado como JSON. El UserRequest evalúa si están todos los campos.
-    public function create(UserRequest $request)
+    /**
+     * Guarda un nuevo usuario en la base de datos.
+     */
+    public function store(UserRequest $request)
     {
         try {
-            $user = new User();
-            $user->name = $request->input('name');
-            $user->email = $request->input('email');
-            $user->password =  Hash::make($request->input('password'));
-            $user->save();
-            $user->roles()->sync([$request->input('role')]);
 
-            return response()->json([
-                'message' => 'User created successfully',
-                'user' => $this->getUsersWithRoles($user->id),
-            ], 200);
+            $user = $this->createUser($request);
+
+            $role_id = $request->input('role');
+
+            $this->assignRoleToUser($user, $role_id);
+
+            $user->save();
+
+
+            return response()->json(['message' => 'Usuario creado con éxito.', 'user' => $this->getUsersWithRoles($user->id),], 200);
         } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Error creating user',
-                'error' => $e->getMessage(),
-            ], 500);
+
+            return response()->json(['message' => 'Error creando usuario', 'error' => $e->getMessage(),], 500);
         }
     }
 
 
 
 
-    //Busca el usuario por su ID
-    public function read(string $id)
+    /**
+     * Devuelve un usuario determinado por su número de id.
+     */
+    public function show(string $id)
     {
-
         try {
 
             return $this->getUsersWithRoles($id);
         } catch (ModelNotFoundException $e) {
 
-            return response()->json([
-                'message' => 'Read error: user id not found.',
-            ], 404);
+            return response()->json(['message' => 'Usuario no encontrado.',], 404);
         }
     }
 
 
 
 
-    //Actualiza los datos del usuario
+    /**
+     * Actualiza un usuario específico en la base de datos.
+     */
     public function update(UserRequest $request, string $id)
     {
         try {
+            //buscar usuario
             $user = User::findOrFail($id);
-            //asignar al usuario el nombre, email, password actualizado enviados por el front
+
+            //Asignarle los nuevos campos
             $user->name = $request->input('name');
             $user->email = $request->input('email');
-
-
-            if ($request->has('password')) {
-                $user->password = Hash::make($request->input('password'));
-            }
-
-            // Actualizar el rol del usuario si se envía en la solicitud
-
-            $user->roles()->detach();
-            $user->roles()->sync([$request->input('role')]);
+            $user->password = Hash::make($request->input('password'));
+            $this->assignRoleToUser($user, $request->input('role'));
             $user->save();
 
-
-            // Construir la respuesta JSON
-            $response = [
-                'message' => 'User updated successfully',
-                'user' => $this->getUsersWithRoles($user->id)
-            ];
-
-
-            return response()->json($response, 200);
+            //Devolver el JSON con el usuario actualizado.
+            return response()->json(['message' => 'Usuario actualizado con éxito.', 'user' => $this->getUsersWithRoles($user->id),], 200);
         } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'message' => 'User not found',
-            ], 404);
+
+            return response()->json(['message' => 'Usuario no encontrado.',], 404);
         }
     }
 
 
 
 
-    //Busca un usuario por su nombre exacto. /search/Victor%20Romero
-    public function search(string $nombre)
+    /**
+     * Remueve un usuario específico de la base de datos.
+     */
+    public function destroy(string $id)
     {
-        try {
-            $user = User::where('name', 'LIKE', urldecode($nombre))->first();
-
-            if (!$user) {
-                return response()->json([
-                    'message' => 'User not found',
-                ], 404);
-            }
-
-            return response()->json($this->getUsersWithRoles($user->id));
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'An error occurred',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
-
-
-
-    //busca al usuario por una pista de su nombre.
-    public function hintSearch(string $hint)
-    {
-        try {
-            $user = User::where('name', 'LIKE', '%' . urldecode($hint) . '%')->get();
-
-            if (!$user) {
-                return response()->json([
-                    'message' => 'User not found',
-                ], 404);
-            }
-
-            return response()->json($this->getUsersWithRoles($user->id));
-        } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'An error occurred',
-                'error' => $e->getMessage(),
-            ], 500);
-        }
-    }
-
-
-
-
-    //Borra un usuario
-    public function delete(string $id)
-    {
-
         try {
             $user = User::findOrFail($id);
 
@@ -177,21 +113,48 @@ class UserController extends Controller
 
             $user->delete();
 
-            return response()->json([
-                'message' => 'User deleted successfully',
-            ], 200);
+            return response()->json(['message' => 'Usuario borrado correctamente.',], 200);
         } catch (ModelNotFoundException $e) {
-            return response()->json([
-                'message' => 'User not found',
-            ], 404);
+
+            return response()->json(['message' => 'Usuario no encontrado.',], 404);
         } catch (\Exception $e) {
-            return response()->json([
-                'message' => 'Error deleting user',
-                'error' => $e->getMessage(),
-            ], 500);
+
+            return response()->json(['message' => 'Error borrando usuario.', 'error' => $e->getMessage(),], 500);
         }
     }
 
+
+
+
+    /*
+*PRIVATE FUNCTIONS
+*
+*/
+    private function createUser(UserRequest $request): User
+    {
+        return User::create([
+            'name' => $request->input('name'),
+            'email' => $request->input('email'),
+            'password' => Hash::make($request->input('password')),
+        ]);
+    }
+
+
+
+
+    private function assignRoleToUser(User $user, $roleId): Void
+    {
+        $role = $user->roles->first();
+
+        //Si el usuario tiene un rol asignado, desechar la asignación.
+        if ($role !== null) {
+            $user->roles()->detach();
+        }
+
+
+        //Reasignar nuevo rol.
+        $user->roles()->sync([$roleId]);
+    }
 
 
 
@@ -199,41 +162,65 @@ class UserController extends Controller
     private function getUsersWithRoles($userId = null)
     {
 
+        //Si no se recibe un ID
+        if ($userId === null) {
 
-        //Tengo un id de usuario, devolver el usuario
-        if ($userId !== null) {
-            $user = User::with('roles:id')->find($userId);
-
-
-            $role = $user->roles->first();
-
-            return [
-                'id'=> $user->id,
-                'name' => $user->name,
-                'email' => $user->email,
-                'created_at' => $user->created_at,
-                'updated_at' => $user->updated_at,
-                'role' => $role ? $role->id : null,
-            ];
-        }
-        //no tengo un id, devolver todos los usuarios
-        else {
-
-
+            //obtener todos los usuarios
             $users = User::with('roles:id')->get();
 
+            //Formatear y devolver el JSON con la lista de usuarios usando la función JSONmaker.
             return $users->map(function ($user) {
-                $role = $user->roles->first();
-
-                return [
-                    'id'=> $user->id,
-                    'name' => $user->name,
-                    'email' => $user->email,
-                    'created_at' => $user->created_at,
-                    'updated_at' => $user->updated_at,
-                    'role' => $role ? $role->id : null,
-                ];
+                return $this->JSONmaker($user);
             });
+        }
+        //Si se recibe un ID...
+        else {
+
+            //buscar el usuario por su id
+            $user = User::with('roles:id')->find($userId);
+
+            // Existe el usuario?
+            if (!$user) {
+                throw new ModelNotFoundException();
+            } else {
+
+                //Formatear y devolver el JSON con el usuario usando la función JSONmaker.
+                return $this->JSONmaker($user);
+            }
+        }
+    }
+
+
+
+
+    public function JSONmaker($user): array
+    {
+        $role = $user->roles->first();
+
+        return [
+            'id' => $user->id,
+            'name' => $user->name,
+            'email' => $user->email,
+            'created_at' => $user->created_at,
+            'updated_at' => $user->updated_at,
+            'role' => $role ? $role->id : null,
+        ];
+    }
+
+
+
+    public function hintSearch(string $hint)
+    {
+        try {
+            $user = User::where('name', 'LIKE', '%' . urldecode($hint) . '%')->get();
+
+            return response()->json($this->getUsersWithRoles($user->id));
+        } catch (ModelNotFoundException $e) {
+
+            return response()->json(['message' => 'Usuario no encontrado.',], 404);
+        } catch (\Exception $e) {
+
+            return response()->json(['message' => 'Error buscando usuario.', 'error' => $e->getMessage(),], 500);
         }
     }
 }

@@ -26,7 +26,7 @@ class UserRequest extends FormRequest
      */
     public function rules(): array
     {
-        $userId = $this->route('id');
+        $userId = $this->route('user');
 
         return [
             'name' => ['required', 'string', 'max:100', Rule::unique('users', 'name')->ignore($userId)],
@@ -46,15 +46,7 @@ class UserRequest extends FormRequest
         ];
     }
 
-    // protected function failedValidation(Validator $validator)
-    // {
-    //     $response = response()->json([
-    //         'message' => 'Validation error',
-    //         'errors' => $validator->errors(),
-    //     ], 422);
 
-    //     throw new HttpResponseException($response);
-    // }
     protected function failedValidation(Validator $validator)
     {
         $firstError = $validator->errors()->first();
