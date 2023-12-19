@@ -43,11 +43,11 @@ class UserController extends Controller
             $user->email = $request->input('email');
             $user->password =  Hash::make($request->input('password'));
             $user->save();
-            $user->roles()->sync($request->input('role'));
+            $user->roles()->sync([$request->input('role')]);
 
             return response()->json([
                 'message' => 'User created successfully',
-                'user' => $user,
+                'user' => $this->getUsersWithRoles($user->id),
             ], 200);
         } catch (\Exception $e) {
             return response()->json([
