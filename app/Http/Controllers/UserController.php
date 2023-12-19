@@ -6,10 +6,23 @@ use App\Http\Requests\UserRequest;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
+use App\Services\RegistrationService;
 
 
 class UserController extends Controller
 {
+
+
+    protected $registrationService;
+
+    public function __construct(RegistrationService $registrationService)
+    {
+
+        $this->registrationService = $registrationService;
+        
+    }
+
+
 
 
     /**
@@ -37,11 +50,11 @@ class UserController extends Controller
     {
         try {
 
-            $user = $this->createUser($request);
+            $user = $this->registrationService->createUser($request);
 
-            $role_id = $request->input('role');
+            
 
-            $this->assignRoleToUser($user, $role_id);
+            $this->registrationService->assignRoleToUser($user, $request);
 
             $user->save();
 
@@ -86,7 +99,7 @@ class UserController extends Controller
             $user->name = $request->input('name');
             $user->email = $request->input('email');
             $user->password = Hash::make($request->input('password'));
-            $this->assignRoleToUser($user, $request->input('role'));
+            $this->registrationService->assignRoleToUser($user, $request->input('role'));
             $user->save();
 
             //Devolver el JSON con el usuario actualizado.
@@ -126,36 +139,10 @@ class UserController extends Controller
 
 
 
-    /*
+
+/*
 *PRIVATE FUNCTIONS
-*
 */
-    private function createUser(UserRequest $request): User
-    {
-        return User::create([
-            'name' => $request->input('name'),
-            'email' => $request->input('email'),
-            'password' => Hash::make($request->input('password')),
-        ]);
-    }
-
-
-
-
-    private function assignRoleToUser(User $user, $roleId): Void
-    {
-        $role = $user->roles->first();
-
-        //Si el usuario tiene un rol asignado, desechar la asignación.
-        if ($role !== null) {
-            $user->roles()->detach();
-        }
-
-
-        //Reasignar nuevo rol.
-        $user->roles()->sync([$roleId]);
-    }
-
 
 
 
@@ -193,7 +180,7 @@ class UserController extends Controller
 
 
 
-    public function JSONmaker($user): array
+    private function JSONmaker($user): array
     {
         $role = $user->roles->first();
 
@@ -209,7 +196,7 @@ class UserController extends Controller
 
 
 
-    public function hintSearch(string $hint)
+    private function hintSearch(string $hint)
     {
         try {
             $user = User::where('name', 'LIKE', '%' . urldecode($hint) . '%')->get();

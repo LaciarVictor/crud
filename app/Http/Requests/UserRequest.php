@@ -40,9 +40,9 @@ class UserRequest extends FormRequest
     public function messages(): array
     {
         return [
-            'name.unique' => __('The user already exists.'),
-            'email.unique' => __('The email already exists.'),
-            'role.exists' => __('The role does not exists.')
+            'name.unique' => __('El usuario ya existe.'),
+            'email.unique' => __('El email ya existe.'),
+            'role.exists' => __('El rol no existe.')
         ];
     }
 
