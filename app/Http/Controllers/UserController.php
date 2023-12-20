@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\UserRequest;
+use App\Http\Requests\UserRequests\UserRegisterRequest;
+use App\Http\Requests\UserRequests\UserStoreRequest;
+use App\Http\Requests\UserRequests\UserUpdateRequest;
 use Illuminate\Support\Facades\Hash;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -11,7 +13,7 @@ use App\Services\RegistrationService;
 
 class UserController extends Controller
 {
-
+   
 
     protected $registrationService;
 
@@ -19,6 +21,10 @@ class UserController extends Controller
     {
 
         $this->registrationService = $registrationService;
+
+        //utilizar UserPolicy para gestionar los permisos de acceso a los métodos del controlador.
+        $this->authorizeResource(User::class, 'user');
+
         
     }
 
@@ -44,9 +50,10 @@ class UserController extends Controller
 
 
     /**
-     * Guarda un nuevo usuario en la base de datos.
+     * Guarda un nuevo usuario creado por un usuario con privilegios.
+     * Esta función se utiliza en el dashboard de usuarios.
      */
-    public function store(UserRequest $request)
+    public function store(UserStoreRequest $request)
     {
         try {
 
@@ -65,6 +72,8 @@ class UserController extends Controller
             return response()->json(['message' => 'Error creando usuario', 'error' => $e->getMessage(),], 500);
         }
     }
+
+
 
 
 
@@ -89,7 +98,7 @@ class UserController extends Controller
     /**
      * Actualiza un usuario específico en la base de datos.
      */
-    public function update(UserRequest $request, string $id)
+    public function update(UserUpdateRequest $request, string $id)
     {
         try {
             //buscar usuario

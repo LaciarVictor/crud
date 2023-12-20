@@ -2,9 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Support\Facades\Auth;
-use App\Http\Requests\UserRequest;
+use App\Http\Requests\UserRequests\UserLoginRequest;
+use App\Http\Requests\UserRequests\UserRegisterRequest;
+use App\Http\Requests\UserRequests\UserStoreRequest;
+//use Illuminate\Support\Facades\Auth;
+use Laravel\Sanctum\Sanctum;
 use App\Services\RegistrationService;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 class AuthController extends Controller
 {
@@ -21,37 +26,59 @@ class AuthController extends Controller
 
 
 
-    public function register(UserRequest $request)
+    /**
+     * Guarda un nuevo usuario creado por el usuario (rol invitado).
+     * Esta función se utiliza en el registro en el welcome.
+     */
+    public function register(UserRegisterRequest $request)
     {
-        try {
+        //Crear un request especial con el rol de invitado para el usuario recién registrado
+        $storeRequest = new UserStoreRequest($request->except('role'));
+        $storeRequest->merge(['role' => 'guest']);
 
-            $user = $this->registrationService->createUser($request);
-            $this->registrationService->assignRoleToUser($user, $request);
 
-            $user->save();
+        //Crear el usuario.
+        $user = $this->registrationService->createUser($storeRequest);
 
-            $token = $user->createToken('auth_token')->plainTextToken;
-            return response()->json(['token' => $token], 201);
-        } catch (\Exception $e) {
+        //Asignarle el rol
+        $this->registrationService->assignRoleToUser($user, $storeRequest);
 
-            return response()->json(['message' => 'Error creando el registro', 'error' => $e->getMessage(),], 500);
-        }
+        //Guardar en la base de datos.
+        $user->save();
+
+
+        // Generar el token de acceso
+        Sanctum::actingAs($user);
+        $token = $user->createToken('auth-token')->plainTextToken;
+
+        return response()->json([
+            'message' => 'Registro exitoso.',
+            'user' => $user,
+            'access_token' => $token,
+        ], 200);
     }
 
 
 
 
-    public function login(UserRequest $request)
+    /**
+     * Verifica las credenciales del usuario, crea el token y envía el JSON.
+     */
+    public function login(UserLoginRequest $request)
     {
         try {
-            $credentials = $request->validated();
 
-            if (!Auth::attempt($credentials)) {
-                return response()->json(['message' => 'Usuario o contraseña incorrectos.'], 401);
+            //Buscar el usuario en la base de datos.
+            $user = User::where('name', $request['name'])->first();
+
+            //Si el usuario no existe o la contraseña es inválida retornar un error
+            if (!$user || !Hash::check($request['password'], $user->password)) {
+                return response([
+                    'msg' => 'Usuario o contraseña incorrectos.'
+                ], 401);
             }
-
-            $user = $request->user();
-            $token = $user->createToken('auth_token')->plainTextToken;
+            //La autenticación es válida. Crear un token.
+            $token = $user->createToken('auth-token')->plainTextToken;
 
             return response()->json(['token' => $token], 200);
         } catch (\Exception $e) {
@@ -61,8 +88,10 @@ class AuthController extends Controller
 
 
 
-
-    public function logout(UserRequest $request)
+    /**
+     *  Verifica las credenciales del usuario, borra el token y envía el JSON.
+     */
+    public function logout(UserLoginRequest $request)
     {
         try {
             $user = $request->user();

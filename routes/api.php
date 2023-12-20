@@ -16,19 +16,22 @@ use App\Http\Controllers\TokenVerificationController;
 | be assigned to the "api" middleware group. Make something great!
 |
 */
+//probar el token
+Route::post('/verify-token',[TokenVerificationController::class, 'verify'])->name('verify');
 
+
+//Estas rutas deberían ser de libre acceso para cualquiera que visite el sitio.
 Route::post('/register', [AuthController::class, 'register'])->name('register');
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 
-Route::get('/verify-token', [TokenVerificationController::class, 'verify'])
-    ->middleware('auth:sanctum', 'token.verification');
 
 //AUTH ROUTES
 Route::middleware('auth:sanctum')->group(function () {
 
-
+//Estas rutas son sólo para usuarios con el rol administrador.
     Route::apiResource('users', UserController::class);
     Route::apiResource('roles', RoleController::class);
 });
+//Aquí debería poner un grupo de rutas con middleware para los usuarios con el rol guest.

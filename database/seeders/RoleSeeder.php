@@ -21,16 +21,16 @@ $sectorManager = Role::create(['name'=> 'sectorManager']); //gerente de sector
 $depManager = Role::create(['name'=> 'depManager']);//gerente de departamento
 $depHead = Role::create(['name'=> 'depHead']);//jefe de departamento
 $depWorker = Role::create(['name'=> 'depWorker']);//operario de departamento
-$guess = Role::create(['name'=> 'guess']);//invitado
+$guess = Role::create(['name'=> 'guest']);//invitado
 
 
-permission::create(['name'=>'user.index'])->syncRoles([$admin]); //listar los usuarios registrados en el dominio.
-permission::create(['name'=>'user.create'])->syncRoles([$admin]); //crear un usuario en la página.
-permission::create(['name'=>'user.update'])->syncRoles([$admin]); //actualizar los datos de un usuario del dominio.
-permission::create(['name'=>'user.read'])->syncRoles([$admin]); //Buscar los datos por id de un usuario del dominio.
-permission::create(['name'=>'user.delete'])->syncRoles([$admin]); //Borrar los datos de un usuario del dominio.
-permission::create(['name'=>'user.search'])->syncRoles([$admin]); //Buscar los datos por nombre de un usuario del dominio.
-permission::create(['name'=>'user.hintSearch'])->syncRoles([$admin]); //Buscar los datos por pista del nombre de un usuario del dominio.
+//permission::create(['name'=>'user.index'])->syncRoles([$admin]); //listar los usuarios registrados en el dominio.
+//permission::create(['name'=>'user.create'])->syncRoles([$admin]); //crear un usuario en la página.
+//permission::create(['name'=>'user.update'])->syncRoles([$admin]); //actualizar los datos de un usuario del dominio.
+//permission::create(['name'=>'user.read'])->syncRoles([$admin]); //Buscar los datos por id de un usuario del dominio.
+//permission::create(['name'=>'user.delete'])->syncRoles([$admin]); //Borrar los datos de un usuario del dominio.
+//permission::create(['name'=>'user.search'])->syncRoles([$admin]); //Buscar los datos por nombre de un usuario del dominio.
+//permission::create(['name'=>'user.hintSearch'])->syncRoles([$admin]); //Buscar los datos por pista del nombre de un usuario del dominio.
 
 
 
