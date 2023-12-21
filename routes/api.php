@@ -33,5 +33,6 @@ Route::middleware('auth:sanctum')->group(function () {
 //Estas rutas son sólo para usuarios con el rol administrador.
     Route::apiResource('users', UserController::class);
     Route::apiResource('roles', RoleController::class);
+
 });
 //Aquí debería poner un grupo de rutas con middleware para los usuarios con el rol guest.

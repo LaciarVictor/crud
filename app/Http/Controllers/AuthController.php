@@ -2,14 +2,18 @@
 
 namespace App\Http\Controllers;
 
+
 use App\Http\Requests\UserRequests\UserLoginRequest;
+use App\Http\Requests\UserRequests\UserLogoutRequest;
 use App\Http\Requests\UserRequests\UserRegisterRequest;
 use App\Http\Requests\UserRequests\UserStoreRequest;
-//use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Auth;
 use Laravel\Sanctum\Sanctum;
 use App\Services\RegistrationService;
 use App\Models\User;
+use GuzzleHttp\Psr7\Request;
 use Illuminate\Support\Facades\Hash;
+
 
 class AuthController extends Controller
 {
@@ -34,7 +38,7 @@ class AuthController extends Controller
     {
         //Crear un request especial con el rol de invitado para el usuario recién registrado
         $storeRequest = new UserStoreRequest($request->except('role'));
-        $storeRequest->merge(['role' => 'guest']);
+        $storeRequest->merge(['role' => 1]);
 
 
         //Crear el usuario.
@@ -64,7 +68,7 @@ class AuthController extends Controller
     /**
      * Verifica las credenciales del usuario, crea el token y envía el JSON.
      */
-    public function login(UserLoginRequest $request)
+    public function login(UserLogoutRequest $request)
     {
         try {
 
@@ -93,13 +97,29 @@ class AuthController extends Controller
      */
     public function logout(UserLoginRequest $request)
     {
-        try {
-            $user = $request->user();
-            $user->currentAccessToken()->delete();
+        try{
 
-            return response()->json(['message' => 'Logout correcto.'], 200);
-        } catch (\Exception $e) {
+            $user = User::where('name', $request->name)->first();
+            $token = Auth::guard('sanctum')->user();
+
+            if(!$user)
+            {
+                return response()->json(['message' => 'El usuario no existe.'], 401);
+            }
+            else if($token === null)
+            {
+                return response()->json(['message' => 'El token no es válido.'], 500);
+            }
+            else
+            {
+                $user->tokens()->delete();
+                return response()->json(['message' => 'Usuario deslogueado.', 'token'=> $token], 200);
+
+            }
+        }catch (\Exception $e){
+
             return response()->json(['message' => 'Error en el proceso de cierre de sesión.'], 500);
+
         }
     }
 }
