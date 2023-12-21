@@ -114,7 +114,7 @@ class AuthController extends Controller
             else 
             {
             
-                return response()->json(['message' => 'El token no es válido.'], 500);
+                return response()->json(['message' => 'El token no es válido.'], 401);
 
             }
         } 
