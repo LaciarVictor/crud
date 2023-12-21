@@ -95,31 +95,33 @@ class AuthController extends Controller
     /**
      *  Verifica las credenciales del usuario, borra el token y envía el JSON.
      */
-    public function logout(UserLoginRequest $request)
+    public function logout()
     {
-        try{
-
-            $user = User::where('name', $request->name)->first();
+        try 
+        {
             $token = Auth::guard('sanctum')->user();
 
-            if(!$user)
+            //si el token es válido
+            if ($token !== null) 
             {
-                return response()->json(['message' => 'El usuario no existe.'], 401);
-            }
-            else if($token === null)
-            {
-                return response()->json(['message' => 'El token no es válido.'], 500);
-            }
-            else
-            {
+
+                //Buscar el usuario y borrarle el token.
+                $user = User::where('name', $token->name)->first();
                 $user->tokens()->delete();
-                return response()->json(['message' => 'Usuario deslogueado.', 'token'=> $token], 200);
+                return response()->json(['message' => 'Usuario deslogueado.'], 200);
+
+            } 
+            else 
+            {
+            
+                return response()->json(['message' => 'El token no es válido.'], 500);
 
             }
-        }catch (\Exception $e){
+        } 
+        catch (\Exception $e) 
+        {
 
             return response()->json(['message' => 'Error en el proceso de cierre de sesión.'], 500);
-
         }
     }
 }
