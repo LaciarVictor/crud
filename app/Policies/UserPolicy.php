@@ -22,6 +22,7 @@ namespace App\Policies;
 
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
+use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
 
 class UserPolicy
 {
@@ -80,4 +81,5 @@ class UserPolicy
     {
         return $user->hasRole('admin');
     }
+
 }

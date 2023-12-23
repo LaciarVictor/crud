@@ -10,6 +10,8 @@ use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Services\UserService;
 use App\Services\AuthService;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Pagination\LengthAwarePaginator;
+
 
 /*
 *UserController: Esta clase se encargará de gestionar las operaciones relacionadas 
@@ -42,11 +44,14 @@ class UserController extends Controller
     /**
      * Muestra la lista de usuarios.
      */
-    public function index()
+    public function index():LengthAwarePaginator
     {
         try {
 
-            return response()->json($this->userService->getAllUsers());
+            $perPage = request()->input('perPage', 10);
+            $users = $this->userService->getAllUsers($perPage);
+
+            return $users;
 
         } catch (\Exception $e) {
 
@@ -67,8 +72,8 @@ class UserController extends Controller
         try {
 
 
-            return response()->json(['message' => 'Usuario creado correctamente.', 
-            'Usuario' =>$this->userService->createUser($request)]);
+            $this->userService->createUser($request);
+            return response()->json(['message' => 'Usuario creado correctamente.']);
 
 
         } catch (\Exception $e) {
@@ -85,16 +90,12 @@ class UserController extends Controller
     {
         try {
 
-
             $user = $this->userService->registerUser($request);
             $token = $this->authService->createUserAccessToken($user);
-            return response()->json(['token'=> $token]);
-
-
+            return response()->json(['token' => $token]);
         } catch (\Exception $e) {
-
-            return response()->json(['message' => 'Error registrando usuario', 'error' => $e->getMessage(),], 500);
-        }
+            return response()->json(['message' => 'Error registrando usuario', 'error' => $e->getMessage()], 500);       
+         }
     }
 
 

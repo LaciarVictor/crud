@@ -8,6 +8,9 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
 use Laravel\Sanctum\Sanctum;
 use Laravel\Sanctum\PersonalAccessToken;
+use Carbon\Carbon;
+use App\Models\User;
+use Illuminate\Support\Facades\DB;
 
 class AuthService
 {
@@ -23,10 +26,11 @@ class AuthService
 
     // Obtener el usuario autenticado
     $user = Auth::user();
-
+    $cantidadTokens = $user->tokens->count();
     // Verificar si el usuario ya tiene un token de acceso activo
-    if ($user->tokens->count() > 0) {
-        return response()->json(['message' => 'El usuario ya tiene un token.'], 403);
+    if ($cantidadTokens > 0) {
+        
+        return response()->json(['message' => 'El usuario ya tiene una sesión activa.'], 403);
     }
 
     // Crear un nuevo token de acceso para el usuario
@@ -39,46 +43,76 @@ class AuthService
 
 
 
-    public function logout(): JsonResponse
-    {
-        Auth::logout();
+public function logout(Request $request)
+{
+    $token = $request->bearerToken();
 
-        return response()->json(['message' => 'Usuario deslogueado.']);
+    $personalAccessToken = PersonalAccessToken::findToken($token);
 
+    if ($personalAccessToken) {
+        $user = $personalAccessToken->tokenable;
+        $user->tokens()->delete();
+
+        return response()->json(['message' => 'Cierre de sesión exitoso.']);
+    }
+    
+    return response()->json(['message' => 'Token inválido']);
+
+    // $tokenDetectado = $request->bearerToken();
+
+    // $DBToken = PersonalAccessToken::findToken($tokenDetectado);
+
+    // if($DBToken){
+
+    //     $userId = $DBToken->tokenable_id;
+    //     $user = User::where('id',$userId)->first();
+    //     $user->tokens()->delete();
+    //     return response()->json(['Message' => 'Cierre de sesión exitoso.']);
+    // }else{
+
+    //     return response()->json(['Message' => 'Token inválido']);
+
+    // }
+
+
+    
+
+  //$request->user()->currentAccessToken()->delete();
+  //$user = User::where('id',1003)->first();
+ 
+  //$user->tokens()->delete();
+  //return response()->json(['user'=>$user]);
+
+}
+
+
+public function createUserAccessToken(User $user): string
+{
+    // Devuelve el token existente si ya tiene uno
+    $existingToken = $user->currentAccessToken();
+
+    if ($existingToken !== null) {
+        return $existingToken->plainTextToken;
     }
 
+    // Generar un nuevo token de acceso
+    $token = $user->createToken('token');
 
+    // Agregar una expiración de 30 minutos al token
+    $this->updateTokenExpiration($token->accessToken);
 
-
-    public function createUserAccessToken($user): string
-    {
-        // Devuelve el token existente si ya tiene uno
-        $existingToken = $user->currentAccessToken();
-
-        if ($existingToken !== null) {
-            return $existingToken->plainTextToken;
-        }
-
-        // Generar un nuevo token de acceso
-        $token = $user->createToken('token')->plainTextToken;
-
-        // Agregar una expiración de 30 minutos al token
-        $this->updateTokenExpiration($token);
-
-        return $token;
-    }
+    return $token->plainTextToken;
+}
 
 
 
 
     public function updateTokenExpiration($token): void
     {
-        if ($token instanceof PersonalAccessToken && !$token->expired()) {
-            $newExpiration = now()->addMinutes(30); // Actualizar duración del token
-            $token->forceFill([
-                'expires_at' => $newExpiration,
-            ])->save();
-        }
+        $token->forceFill([
+            'expires_at' => Carbon::now()->addMinutes(30)
+        ])->save();
+        
     }
 
 
@@ -87,13 +121,10 @@ class AuthService
     public function updateUserTokenExpiration(Request $request): void
     {
         $user = $request->user();
-
-        if ($user && $user->currentAccessToken()) {
+    
+        if( $user ){           
             $token = $user->currentAccessToken();
-
-            if ($token instanceof PersonalAccessToken && !$token->expired()) {
-                $this->updateTokenExpiration($token);
-            }
+            $this->updateTokenExpiration($token);
         }
     }
 }

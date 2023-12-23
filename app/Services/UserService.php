@@ -6,10 +6,11 @@ use App\Models\User;
 use App\Http\Requests\UserRequests\UserRegisterRequest;
 use App\Http\Requests\UserRequests\UserStoreRequest;
 use App\Http\Requests\UserRequests\UserUpdateRequest;
-use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use Illuminate\Support\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\Hash;
+
 
 class UserService
 {
@@ -90,27 +91,39 @@ class UserService
 
 
 
-    public function getAllUsers(): Collection
+    public function getAllUsers($perPage = 10):LengthAwarePaginator
     {
+        $usersPaginator = User::with('roles:id')->paginate($perPage);
 
-        $users = User::with('roles:id')->get();
+        $users = collect($usersPaginator->items());
 
-
-        return $users->map(function ($user) {
+        $formattedUsers = $users->map(function ($user) {
             return $this->JSONmaker($user);
-        });
+            });
+
+        $paginator = new LengthAwarePaginator(
+            $formattedUsers,
+            $usersPaginator->total(),
+            $usersPaginator->perPage(),
+            $usersPaginator->currentPage(),
+                [
+                    'path' => Paginator::resolveCurrentPath(),
+                    'query' => request()->query(),
+                 ]
+            );
+
+        return $paginator;
     }
 
 
 
 
-    public function getUser(string $userId): ?User
+    public function getUser(int $userId):  User|null
     {
         try {
-            // Buscar el usuario por su id
+
             $user = User::with('roles:id')->findOrFail($userId);
     
-            // Devolver el usuario formateado
             return $this->JSONmaker($user);
         } catch (ModelNotFoundException $exception) {
             // El usuario no fue encontrado

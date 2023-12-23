@@ -5,6 +5,7 @@ use App\Http\Controllers\UserController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\TokenVerificationController;
+use App\Http\Middleware\AuthMiddleware;
 
 /*
 |--------------------------------------------------------------------------
@@ -28,7 +29,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 
 //AUTH ROUTES
-Route::middleware('auth:sanctum','AuthMiddleware')->group(function () {
+Route::middleware('auth:sanctum',AuthMiddleware::class)->group(function () {
 
 //Estas rutas son sólo para usuarios autenticados.
     Route::apiResource('users', UserController::class);

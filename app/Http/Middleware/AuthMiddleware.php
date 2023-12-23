@@ -6,6 +6,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Services\AuthService;
+use Illuminate\Support\Carbon;
 
 class AuthMiddleware
 {
@@ -17,15 +18,25 @@ class AuthMiddleware
 
         $this->authService = $authService;
     }
-
-    public function handle(Request $request, Closure $next)
+/*Refreshea la fecha de caducidad del token con cada petición a la ruta 
+que este middleware proteje.
+*/  
+public function handle(Request $request, Closure $next)
     {
-        $response = $next($request);
+        $this->authService->updateUserTokenExpiration($request);
     
-        if (Auth::guard('sanctum')->check()) {
-            $this->authService->updateUserTokenExpiration($request);
-        }
+        return $next($request);
+
+
+        // $user = $request->user();
+
+        // if ($user) {
+        //     $token = $user->currentAccessToken();
+        //     $this->authService->updateTokenExpiration($token);
+        // }
     
-        return $response;
+        // return $next($request);
+
+
     }
 }
