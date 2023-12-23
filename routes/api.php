@@ -21,16 +21,16 @@ Route::post('/verify-token',[TokenVerificationController::class, 'verify'])->nam
 
 
 //Estas rutas deberían ser de libre acceso para cualquiera que visite el sitio.
-Route::post('/register', [AuthController::class, 'register'])->name('register');
+Route::post('/register', [UserController::class, 'register'])->name('register');
 Route::post('/login', [AuthController::class, 'login'])->name('login');
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 
 
 //AUTH ROUTES
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:sanctum','AuthMiddleware')->group(function () {
 
-//Estas rutas son sólo para usuarios con el rol administrador.
+//Estas rutas son sólo para usuarios autenticados.
     Route::apiResource('users', UserController::class);
     Route::apiResource('roles', RoleController::class);
 

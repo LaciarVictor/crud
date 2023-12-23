@@ -29,5 +29,7 @@ class UserSeeder extends Seeder
 
         ])->assignRole('admin');
 
+        // Generar 1000 usuarios ficticios utilizando el factory
+        User::factory()->count(1000)->create();
     }
 }
