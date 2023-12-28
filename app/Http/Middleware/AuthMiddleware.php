@@ -4,27 +4,40 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use App\Services\AuthService;
-use Illuminate\Support\Carbon;
 
+
+/**
+ * Esta clase agrega tiempo a la expiración del token
+ */
 class AuthMiddleware
 {
-    
+
     protected $authService;
 
+    /**
+     * El constructor utiliza el sevicio authservice para gestionar un token.
+     *
+     * @param AuthService $authService
+     */
     public function __construct(AuthService $authService)
     {
 
         $this->authService = $authService;
     }
-/*Refreshea la fecha de caducidad del token con cada petición a la ruta 
-que este middleware proteje.
-*/  
-public function handle(Request $request, Closure $next)
+
+    /**
+     * Actualiza el tiempo de expiración del token.
+     * Debe utilizarse junto a auth:sanctum para verificar la existencia del token.
+     *
+     * @param Request $request
+     * @param Closure $next
+     * @return void
+     */
+    public function handle(Request $request, Closure $next)
     {
         $this->authService->updateUserTokenExpiration($request);
-    
+
         return $next($request);
 
 
@@ -34,7 +47,7 @@ public function handle(Request $request, Closure $next)
         //     $token = $user->currentAccessToken();
         //     $this->authService->updateTokenExpiration($token);
         // }
-    
+
         // return $next($request);
 
 

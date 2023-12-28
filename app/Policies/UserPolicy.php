@@ -21,8 +21,7 @@ public function boot()
 namespace App\Policies;
 
 use App\Models\User;
-use Illuminate\Auth\Access\Response;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+
 
 class UserPolicy
 {
@@ -31,6 +30,7 @@ class UserPolicy
      */
     public function viewAny(User $user): bool
     {
+        
         return $user->hasRole('admin');
     }
 
@@ -39,7 +39,10 @@ class UserPolicy
      */
     public function view(User $user, User $model): bool
     {
-        return $user->hasRole('admin');
+        //Ya que la tabla usuarios sólo es accesible por autenticación
+        //cualquier rol puede ver los usuarios.
+        return true;
+        
     }
 
     /**

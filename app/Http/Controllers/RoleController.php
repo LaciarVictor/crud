@@ -5,49 +5,71 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Spatie\Permission\Models\Role;
 
-
+/**
+ * Esta clase se encarga de controlar los roles de los usuarios
+ */
 class RoleController extends Controller
 {
 
     /**
-     * Display a listing of the resource.
+     * Trata de listar todos los roles
+     *
+     * @return void
      */
     public function index()
     {
         $roles = Role::all();
-
-        //Devolver los roles por nombres ordenados por id.
-       // $roles = Role::orderBy('id')->pluck('name');
-       // $roles = Role::orderByDesc('id')->pluck('name');
-
         return response()->json($roles);
     }
+
+
+
     /**
-     * Store a newly created resource in storage.
+     * Trata de guardar un rol
+     *
+     * @param Request $request
+     * @return void
      */
     public function store(Request $request)
     {
         //
     }
 
+
+
     /**
-     * Display the specified resource.
+     * Trata de mostrar un rol por su id
+     *
+     * @param string $id
+     * @return void
      */
     public function show(string $id)
     {
-        //
+       $roles = Role::orderBy('id')->pluck('name');
+       return response()->json($roles);
     }
 
+
+
     /**
-     * Update the specified resource in storage.
+     * Trata de actualizar un rol
+     *
+     * @param Request $request
+     * @param string $id
+     * @return void
      */
     public function update(Request $request, string $id)
     {
         //
     }
 
+ 
+
     /**
-     * Remove the specified resource from storage.
+     * Trata de eliminar un rol
+     *
+     * @param string $id
+     * @return void
      */
     public function destroy(string $id)
     {

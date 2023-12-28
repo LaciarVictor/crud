@@ -4,22 +4,24 @@ namespace App\Http\Controllers;
 
 
 use App\Http\Requests\UserRequests\UserLoginRequest;
-//use App\Http\Requests\UserRequests\UserRegisterRequest;
-//use App\Http\Requests\UserRequests\UserStoreRequest;
-//use Illuminate\Support\Facades\Auth;
 use App\Services\AuthService;
 use Illuminate\Http\Request;
 
-//use App\Models\User;
-//use Illuminate\Support\Facades\Hash;
 
-
+/**
+ * Clase encargada de controlar la autenticación de usuarios
+ */
 class AuthController extends Controller
 {
 
 
     protected $authService;
 
+    /**
+     * El constructor recibe un servicio que se encarga de gestionar autorizaciones
+     *
+     * @param AuthService $authService
+     */
     public function __construct(AuthService $authService)
     {
 
@@ -30,8 +32,11 @@ class AuthController extends Controller
 
 
     /**
-     * Verifica las credenciales del usuario, crea el token y envía el JSON.
-     */
+    * Trata de loguear un usuario
+    *
+    * @param UserLoginRequest $request
+    * @return void
+    */
     public function login(UserLoginRequest $request)
     {
         try {
@@ -46,7 +51,10 @@ class AuthController extends Controller
 
 
     /**
-     *  Verifica las credenciales del usuario, borra el token y envía el JSON.
+     * Trata de desloguear al usuario
+     *
+     * @param Request $request
+     * @return void
      */
     public function logout(Request $request)
     {

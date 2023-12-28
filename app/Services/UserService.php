@@ -3,56 +3,83 @@
 namespace App\Services;
 
 use App\Models\User;
-use App\Http\Requests\UserRequests\UserRegisterRequest;
-use App\Http\Requests\UserRequests\UserStoreRequest;
+use Spatie\Permission\Models\Role;
+use App\Http\Requests\UserRequests\UserCreateRequest;
 use App\Http\Requests\UserRequests\UserUpdateRequest;
-use Illuminate\Pagination\Paginator;
+use App\Http\Requests\UserRequests\UserLoginRequest;
+use App\Interfaces\ICrudable;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Pagination\Paginator;
 use Illuminate\Support\Facades\Hash;
+use App\Services\CrudService;
+use App\Services\AuthService;
 
 
-class UserService
+
+class UserService extends CrudService implements ICrudable
 {
+    protected $authservice;
 
-
-    public function createUser(UserStoreRequest $request): array
+    public function __construct(User $user, AuthService $authService)
     {
-        // Obtener los datos del request
-        $userData = $request->validated();
-
-        // Crear un nuevo usuario con los datos proporcionados
-        $user = new User();
-        $user->name = $userData['name'];
-        $user->email = $userData['email'];
-        $user->password = Hash::make($userData['password']);
-        $user->save();
-
-        // Asignar el rol correspondiente al usuario
-        $this->assignRoleToUser($user, $userData['role']);
-
-        return $this->JSONmaker($user);
+        parent::__construct($user);
+        $this->authservice = $authService;
     }
 
 
 
 
-    public function registerUser(UserRegisterRequest $request): User
+    /**
+     * Crea un nuevo usuario.
+     * 
+     * @param UserCreateRequest $request
+     * @return array
+     */
+    public function create(object $request): array
     {
-        // Obtener los datos del request
-        $userData = $request->validated();
 
-        // Crear un nuevo usuario con los datos proporcionados
-        $user = new User();
-        $user->name = $userData['name'];
-        $user->email = $userData['email'];
-        $user->password = Hash::make($userData['password']);
+        //Crea un instancia del modelo y le asigna los valores
+        //exceptua password y role para tratarlos aparte.
+        $user = $this->buildModelInstance($request, [
+            'password',
+            'role',
+        ]);
+
+        // Encriptar el password y asignarlo al usuario.
+        $user->password = Hash::make($request->input('password'));
+
+        $role_id = $request->input('role');
+
+        $this->assignUserRole($user, $role_id);
         $user->save();
 
-        // Asignar el rol de invitado por defecto al usuario
-        $this->assignRoleToUser($user, 8);
+        return $this->setFormatResponse($user);
+    }
 
-        return $user;
+
+
+
+    /**
+     * Registra a un usuario.
+     *
+     * @param UserCreateRequest $request
+     * @return void
+     */
+    public function register(UserCreateRequest $request): void
+    {
+
+
+        $userData = $this->create($request);
+
+        $user = $this->findModelById($userData['id']);
+
+        $userLoginRequest = new UserLoginRequest([
+            'user' => $user->userName,
+            'password' => $request->input('password')
+        ]);
+
+        $this->authservice->login($userLoginRequest);
     }
 
 
@@ -60,123 +87,148 @@ class UserService
 
     public function updateUser(UserUpdateRequest $request, int $id): array
     {
-        // Buscar el usuario con el ID dado
-        $user = User::findOrFail($id);
+        $user = $this->findModelById($id);
 
-        // Actualizar los campos relevantes del usuario con los datos proporcionados
-        $user->name = $request->input('name');
-        $user->email = $request->input('email');
-        $user->password = Hash::make($request->input('password'));
-        $user->roles()->detach();
-        $this->assignRoleToUser($user,$request->input('role'));
+        $role_id = $request->input('role');
 
-        // Guardar los cambios en la base de datos
-        $user->save();
+        $this->assignUserRole($user, $role_id);
 
-        // Asignar roles u otras operaciones relacionadas con la gestión de usuarios
+        $data = $request->except('role');
+        $data['password'] = Hash::make($request->input('password'));
 
-        return $this->JSONmaker($user);
+        parent::update($id, $data);
+
+
+        return $this->setFormatResponse($user);
     }
+
 
 
 
     public function deleteUser(int $id): void
     {
-
-        $user = User::findOrFail($id);
+        $user = $this->findModelById($id);
         $user->roles()->detach();
         $user->delete();
+        //TO DO borrar el token
     }
 
 
 
 
-    public function getAllUsers($perPage = 10):LengthAwarePaginator
+    public function findAllModels($perPage = 10): ?LengthAwarePaginator
     {
-        $usersPaginator = User::with('roles:id')->paginate($perPage);
+        try {
+            //$users = $this->model->with('roles:id')->get();
+            $usersPaginator = $this->model->with('roles:id')->paginate($perPage);
 
-        $users = collect($usersPaginator->items());
+            if ($usersPaginator->isEmpty()) {
+                return null; // Retorna null si la tabla está vacía
+            }
 
-        $formattedUsers = $users->map(function ($user) {
-            return $this->JSONmaker($user);
-            });
+                $formattedUsers = collect($usersPaginator->items())->map(function ($user) {
+                    return $this->setFormatResponse($user);
+                });
 
-        $paginator = new LengthAwarePaginator(
-            $formattedUsers,
-            $usersPaginator->total(),
-            $usersPaginator->perPage(),
-            $usersPaginator->currentPage(),
+
+            $paginator = new LengthAwarePaginator(
+                $formattedUsers,
+                $usersPaginator->total(),
+                $usersPaginator->perPage(),
+                $usersPaginator->currentPage(),
                 [
                     'path' => Paginator::resolveCurrentPath(),
                     'query' => request()->query(),
-                 ]
+                ]
             );
 
-        return $paginator;
+            return $paginator;
+        } catch (\Exception $e) {
+            //TO DO function type expected LengthAwarePaginator instead of json response. Fix it.
+            return null;
+        }
     }
 
 
 
 
-    public function getUser(int $userId):  User|null
+    public function findModelById(int $userId): ?User
+    {
+        try {
+            $user = $this->model->with('roles:id')->findOrFail($userId);
+            return $this->setFormatResponse($user);
+        } catch (ModelNotFoundException $exception) {
+            return null;
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
+        }
+    }
+
+
+
+
+    protected function assignUserRole(User $user, int $roleId): void
+    {
+        $user->roles()->detach();
+
+        $guestRoleId = 8;
+        $role = Role::findById($roleId) ?? Role::findById($guestRoleId);
+
+        if ($role) {
+            $user->assignRole($role);
+        }
+    }
+
+
+
+
+    protected function deleteUserRole(User $usr): void
+    {
+        $usr->roles()->detach(); // Desasignar todos los roles del usuario al eliminarlo
+    }
+
+
+
+
+    public function buildModelInstance(object $modelData, array $exceptCollection): User
     {
         try {
 
-            $user = User::with('roles:id')->findOrFail($userId);
-    
-            return $this->JSONmaker($user);
-        } catch (ModelNotFoundException $exception) {
-            // El usuario no fue encontrado
-            return null;
+            $model = new User();
+
+            foreach ($modelData->all() as $key => $value) {
+                if (!in_array($key, $exceptCollection)) {
+                    $model->{$key} = $value;
+                }
+            }
+
+            return $model;
+            
+        } catch (\Exception $e) {
+            return response()->json(['error' => $e->getMessage()], 500);
         }
     }
 
 
 
-    private function assignRoleToUser(User $user, int $roleId): void
+
+    public function setFormatResponse($userData): array
     {
-
-        $user->assignRole($roleId);
-    }
-
-
-
- /*   public function getUserByHint(string $hint):?User
-    {
-
-        $queryhint = '%' . urldecode($hint) . '%';
-
-        $user = User::where(function (Builder $query) use ($queryhint) {
-            $query->where('name', 'LIKE', $queryhint);
-        })->get();
-    
-        if ($user->isEmpty()) {
-            return null;
-        }
-    
-        return $this->getUser($user->first()->id);
-       
-    }*/   
-
-  
-
-
-    private function JSONmaker($user): array
-    {
+        $user = $userData;
         $role = $user->roles->first();
 
         return [
             'id' => $user->id,
-            'name' => $user->name,
+            'userName' => $user->userName,
+            'firstName' => optional($user->firstName)->id,
+            'lastName' => optional($user->lastName)->id,
+            'phoneCode' => optional($user->phoneCode)->id,
+            'phoneNumber' => optional($user->phoneNumber)->id,
             'email' => $user->email,
             'created_at' => $user->created_at,
             'updated_at' => $user->updated_at,
-            'role' => $role ? $role->id : null,
+
+            'role' => $role ? $role->id : null
         ];
     }
-
-
-
-
-
 }

@@ -3,7 +3,8 @@
 namespace App\Exceptions;
 
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
-use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException;
+//use Symfony\Component\HttpKernel\Exception\AccessDeniedHttpException; 
+//use Illuminate\Auth\Access\AuthorizationException; //added by victor
 use Throwable;
 
 class Handler extends ExceptionHandler
@@ -29,7 +30,7 @@ class Handler extends ExceptionHandler
         });
     }
 
-    // //Metodo agregado por la IA OJO
+    // //Metodo agregado por la IA OJO added by Victor
     // /**
     //  * Render an exception into an HTTP response.
     //  *

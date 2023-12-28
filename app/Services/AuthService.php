@@ -6,19 +6,20 @@ use Illuminate\Http\Request;
 use App\Http\Requests\UserRequests\UserLoginRequest;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\JsonResponse;
-use Laravel\Sanctum\Sanctum;
 use Laravel\Sanctum\PersonalAccessToken;
 use Carbon\Carbon;
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
 
+/**
+ * Gestiona las autenticaciones de usuario
+ */
 class AuthService
 {
     
     public function login(UserLoginRequest $request): JsonResponse
 {
     // Validar las credenciales del usuario y generar el token de acceso
-    $credentials = $request->only(['name', 'password']);
+    $credentials = $request->only(['userName', 'password']);
 
     if (!Auth::attempt($credentials)) {
         return response()->json(['message' => 'Usuario o contraseña incorrectos.'], 401);

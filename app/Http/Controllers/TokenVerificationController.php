@@ -6,23 +6,29 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 
-
+/**
+ * Esta clase es solo para validar un token
+ */
 class TokenVerificationController extends Controller
 {
+    
+    /**
+     * Verificar el token
+     *
+     * @param Request $request
+     * @return void
+     */
     public function verify(Request $request)
     {
 
-        //captura el token de la request
+        //capturar el token de la request
         $token = $request->bearerToken();
-        // $token = $request->header('Authorization');
+        $user = Auth::guard('sanctum')->user();
 
-        // Si hay un token, comprobar de que el token es válido.
-        if ($token) {
-            $user = Auth::guard('sanctum')->user();
-            // Si el token es válido enviar true.
-            if ($user) {
-                return response()->json(['status' => true]);
-            }
+        // Si hay un token valido, y asignado a un usuario...
+        if ($token && $user) {   
+
+            return response()->json(['status' => true]);
         }
 
         return response()->json(['status' => false]);

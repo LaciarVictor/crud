@@ -21,7 +21,7 @@ class UserLoginRequest extends UserBaseRequest
        
 
         return [
-            'name' => ['required', 'string', 'max:100'], 
+            'userName' => ['required', 'string', 'max:100'], 
             'password' => ['required', 'min:6']
         ];
     }

@@ -2,8 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Requests\UserRequests\UserRegisterRequest;
-use App\Http\Requests\UserRequests\UserStoreRequest;
+use App\Http\Requests\UserRequests\UserCreateRequest;
 use App\Http\Requests\UserRequests\UserUpdateRequest;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
@@ -13,12 +12,10 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Pagination\LengthAwarePaginator;
 
 
-/*
-*UserController: Esta clase se encargará de gestionar las operaciones relacionadas 
-*con los usuarios, como la creación, actualización y eliminación de usuarios.
-*/
 
-
+/**
+ * Esta clase controla al modelo User
+ */
 class UserController extends Controller
 {
    
@@ -26,13 +23,23 @@ class UserController extends Controller
     protected $userService;
     protected $authService;
 
+    /**
+     * El constructor utiliza dos servicios. El user service para el crud de usuarios
+     * y el auth service para la autenticación.
+     *
+     * @param UserService $userService
+     * @param AuthService $authService
+     */
     public function __construct(UserService $userService, AuthService $authService)
     {
 
         $this->userService = $userService;
         $this->authService = $authService;
 
-        //utilizar UserPolicy para gestionar los permisos de acceso a los métodos del controlador.
+
+        /**
+         * utilizar UserPolicy para gestionar los permisos de acceso a los métodos del controlador.
+         */
         $this->authorizeResource(User::class, 'user');
 
         
@@ -42,16 +49,18 @@ class UserController extends Controller
 
 
     /**
-     * Muestra la lista de usuarios.
+     * Trata de mostrar la lista de usuarios paginada.
+     *
+     * @return ?LengthAwarePaginator
      */
-    public function index():LengthAwarePaginator
+    public function index(): ?LengthAwarePaginator
     {
         try {
 
             $perPage = request()->input('perPage', 10);
-            $users = $this->userService->getAllUsers($perPage);
+            $usersPaginated = $this->userService->findAllModels($perPage);
 
-            return $users;
+            return $usersPaginated;
 
         } catch (\Exception $e) {
 
@@ -63,16 +72,18 @@ class UserController extends Controller
 
 
 
-    /**
-     * Guarda un nuevo usuario creado por un usuario con privilegios.
-     * Esta función se utiliza en el dashboard de usuarios.
-     */
-    public function store(UserStoreRequest $request):JsonResponse
+/**
+ * Trata de guardar un usuario con un rol asignado
+ *
+ * @param UserCreateRequest $request
+ * @return JsonResponse
+ */
+    public function store(UserCreateRequest $request):JsonResponse
     {
         try {
 
 
-            $this->userService->createUser($request);
+            $this->userService->create($request);
             return response()->json(['message' => 'Usuario creado correctamente.']);
 
 
@@ -85,30 +96,45 @@ class UserController extends Controller
 
 
 
-
-    public function register(UserRegisterRequest $request):JsonResponse
+    /**
+     * Trata de registrar un usuario. Diferencias con store:
+     * Asigna el rol invitado (guest).
+     * Genera un token.
+     *
+     * @param UserCreateRequest $request
+     * @return JsonResponse
+     */
+    public function register(UserCreateRequest $request):JsonResponse
     {
         try {
 
-            $user = $this->userService->registerUser($request);
-            $token = $this->authService->createUserAccessToken($user);
-            return response()->json(['token' => $token]);
+            $this->userService->register($request);
+
+            //$user = $this->userService->register($request);
+
+           // return response()->json(['token' => $token]);
+
         } catch (\Exception $e) {
+
             return response()->json(['message' => 'Error registrando usuario', 'error' => $e->getMessage()], 500);       
          }
     }
 
 
 
+
     /**
-     * Devuelve un usuario determinado por su número de id.
+     * Trata de devolver un usuario proporcionando su id.
+     *
+     * @param string $id
+     * @return JsonResponse
      */
     public function show(string $id):JsonResponse
     {
         try {
 
             return response()->json(['message' => 'Usuario encontrado.', 
-            'Usuario' =>$this->userService->getUser($id)]);
+            'Usuario' =>$this->userService->findModelById($id)]);
 
         } catch (ModelNotFoundException $e) {
 
@@ -120,7 +146,11 @@ class UserController extends Controller
 
 
     /**
-     * Actualiza un usuario específico en la base de datos.
+     * Trata de actualizar un usuario en la base de datos.
+     *
+     * @param UserUpdateRequest $request
+     * @param string $id
+     * @return JsonResponse
      */
     public function update(UserUpdateRequest $request, string $id):JsonResponse
     {
@@ -132,6 +162,9 @@ class UserController extends Controller
         } catch (ModelNotFoundException $e) {
 
             return response()->json(['message' => 'Usuario no encontrado.',], 404);
+        } catch (\Exception $e) {
+
+            return response()->json(['message' => 'Error actualizando usuario.', 'error' => $e->getMessage(),], 500);
         }
     }
 
@@ -139,7 +172,10 @@ class UserController extends Controller
 
 
     /**
-     * Remueve un usuario específico de la base de datos.
+     * Trata de borrar un usuario por su id.
+     *
+     * @param string $id
+     * @return JsonResponse
      */
     public function destroy(string $id):JsonResponse
     {
@@ -155,6 +191,5 @@ class UserController extends Controller
             return response()->json(['message' => 'Error borrando usuario.', 'error' => $e->getMessage(),], 500);
         }
     }
-
 
 }
