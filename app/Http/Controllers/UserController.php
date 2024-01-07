@@ -5,7 +5,6 @@ namespace App\Http\Controllers;
 use App\Http\Requests\UserRequests\UserCreateRequest;
 use App\Http\Requests\UserRequests\UserUpdateRequest;
 use App\Models\User;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use App\Services\User\UserService;
 use App\Services\User\AuthService;
 use Illuminate\Http\JsonResponse;
@@ -80,18 +79,9 @@ class UserController extends Controller
  */
     public function store(UserCreateRequest $request):JsonResponse
     {
-        try {
+       
+        return $this->userService->userCreate($request);
 
-
-            $this->userService->create($request);
-            return response()->json(['message' => 'Usuario creado correctamente.']);
-
-
-        } catch (\Exception $e) {
-
-            return response()->json(['message' => 'Error creando usuario', 
-            'error' => $e->getMessage(),], 500);
-        }
     }
 
 
@@ -106,18 +96,11 @@ class UserController extends Controller
      */
     public function register(UserCreateRequest $request):JsonResponse
     {
-        try {
 
-            $this->userService->register($request);
 
-            //$user = $this->userService->register($request);
+        return $this->userService->userRegister($request);
 
-           // return response()->json(['token' => $token]);
 
-        } catch (\Exception $e) {
-
-            return response()->json(['message' => 'Error registrando usuario', 'error' => $e->getMessage()], 500);       
-         }
     }
 
 
@@ -131,15 +114,9 @@ class UserController extends Controller
      */
     public function show(int $id):JsonResponse
     {
-        try {
 
-            return response()->json(['message' => 'Usuario encontrado.', 
-            'Usuario' =>$this->userService->findModelById($id)]);
+        return $this->userService->findUser($id);
 
-        } catch (ModelNotFoundException $e) {
-
-            return response()->json(['message' => 'Usuario no encontrado.',], 404);
-        }
     }
 
 
@@ -154,18 +131,7 @@ class UserController extends Controller
      */
     public function update(UserUpdateRequest $request, int $id):JsonResponse
     {
-        try {
-
-            return response()->json(['message' => 'Usuario actualizado correctamente.', 
-            'Usuario' =>$this->userService->updateUser($request, $id)]);
-
-        } catch (ModelNotFoundException $e) {
-
-            return response()->json(['message' => 'Usuario no encontrado.',], 404);
-        } catch (\Exception $e) {
-
-            return response()->json(['message' => 'Error actualizando usuario.', 'error' => $e->getMessage(),], 500);
-        }
+        return $this->userService->userUpdate($request,$id);
     }
 
 
@@ -179,17 +145,7 @@ class UserController extends Controller
      */
     public function destroy(int $id):JsonResponse
     {
-        try {
-            $this->userService->deleteUser($id);
-
-            return response()->json(['message' => 'Usuario borrado correctamente.',], 200);
-        } catch (ModelNotFoundException $e) {
-
-            return response()->json(['message' => 'Usuario no encontrado.',], 404);
-        } catch (\Exception $e) {
-
-            return response()->json(['message' => 'Error borrando usuario.', 'error' => $e->getMessage(),], 500);
-        }
+        return $this->userService->deleteUser($id);
     }
 
 }

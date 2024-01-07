@@ -42,7 +42,7 @@ class UserService extends CrudService implements ICrudable
      * Crea un nuevo usuario.
      * 
      * @param UserCreateRequest $request
-     * @return array
+     * @return JsonResponse
      */
     public function userCreate(UserCreateRequest $request): JsonResponse
     {
@@ -51,7 +51,9 @@ class UserService extends CrudService implements ICrudable
             //Crear el usuario.
             $user = parent::create($request);
 
-            return $this->setJSONResponse($user);
+            return response()->json([
+                'user' => $this->setJSONResponse($user)
+            ]);
         } catch (ValidationException $ex) {
 
             return response()->json(['message' => $ex->validator->errors()], 422);
@@ -72,7 +74,7 @@ class UserService extends CrudService implements ICrudable
      * Registra a un usuario.
      *
      * @param UserCreateRequest $request
-     * @return void
+     * @return JsonResponse
      */
     public function UserRegister(UserCreateRequest $request): JsonResponse
     {
@@ -111,7 +113,7 @@ class UserService extends CrudService implements ICrudable
 
 
 
-    public function updateUser(UserUpdateRequest $request, int $id): array
+    public function userUpdate(UserUpdateRequest $request, int $id): JsonResponse
     {
         try {
 
