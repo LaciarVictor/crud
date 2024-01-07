@@ -52,9 +52,7 @@ class UserService extends CrudService implements ICrudable
 
             $user = $this->processUserCreation($request);
 
-            return response()->json([
-                'user' => $this->setJSONResponse($user)
-            ]);
+            return response()->json([$this->setJSONResponse($user)]);
         } catch (ValidationException $ex) {
 
             return response()->json(['message' => $ex->validator->errors()], 422);
@@ -82,22 +80,28 @@ class UserService extends CrudService implements ICrudable
 
         try {
 
+            $userPassword = $request->input('password');
+
             $user = $this->processUserCreation($request);
 
             //Crear una solicitud para loguear al usuario.
             $userLoginRequest = new UserLoginRequest([
-                'user' => $user->user_name,
-                'password' => $request->input('password')
+                'user_name' => $user->user_name,
+                'password' => $userPassword
             ]);
 
-            // Loguear al usuario y obtener el token.
-            $token = $this->authservice->login($userLoginRequest);
+        // Loguear al usuario y obtener la respuesta JSON.
+        $loginResponse = $this->authservice->login($userLoginRequest);
 
-            // Devolver el usuario y el token en la misma respuesta JSON.
-            return response()->json([
-                'user' => $this->setJSONResponse($user),
-                'token' => $token,
-            ]);
+        // Extraer el token de la respuesta JSON.
+        $token = $loginResponse->original['token'];
+
+        // Agregar el token al array del usuario.
+        $userArray = $this->setJSONResponse($user);
+        $userArray['token'] = $token;
+
+        // Devolver el usuario y el token en el mismo array JSON.
+        return response()->json($userArray);
         } catch (ValidationException $ex) {
 
             return response()->json(['message' => $ex->validator->errors()], 422);

@@ -23,13 +23,13 @@ class AuthService
         // Validar las credenciales del usuario y generar el token de acceso
         $credentials = $request->only(['user_name', 'password']);
     
-        $coincide = Hash::check('123456', '$2y$12$jTxBUW.uhIVuOS/ff8oMjOpFOOGkvxc4sTZeUm/suZKDtjJ/1.oOK') ? true : false;
+        //$coincide = Hash::check('123456', '$2y$12$jTxBUW.uhIVuOS/ff8oMjOpFOOGkvxc4sTZeUm/suZKDtjJ/1.oOK') ? true : false;
 
 
 
         
         if (!Auth::attempt($credentials)) {
-            return response()->json(['message' => 'Usuario o contraseña incorrectos.', 'La contraseña coincide?' => $coincide], 401);
+            return response()->json(['message' => 'Usuario o contraseña incorrectos.'], 401);
         }
     
         // Obtener el usuario autenticado
@@ -75,8 +75,12 @@ class AuthService
 
             return response()->json(['message' => 'Cierre de sesión exitoso.']);
         }
+        else
+        {
+            return response()->json(['message' => 'La solicitud debe contener un token de acceso activo, por favor verifique'], 404);
+        }
 
-        return response()->json(['message' => 'Token inválido']);
+        return response()->json(['message' => 'Error en el cierre de sesión.'], 500);
     }
 
 
