@@ -95,7 +95,7 @@ class User extends Authenticatable
          * 
          * @param  \App\Models\User  $user
          */
-        static::filling(function ($user) {
+        static::updating(function ($user) {
 
             //Si la solicitud JSON tiene el campo password...
             if (!empty($user->password)) {
