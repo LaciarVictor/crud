@@ -23,7 +23,8 @@ class UserSeeder extends Seeder
             'email' => "laciarvictor@gmail.com",
             'phone_code'=> "54",
             'phone_number'=> "1144138057",
-            'password' => Hash::make('123456')
+            'password' => Hash::make('123456'),
+            //'role' => 'admin'
 
         ])->assignRole('admin');
 
@@ -34,7 +35,8 @@ class UserSeeder extends Seeder
             'email' => "decxx1@gmail.com",
             'phone_code'=> "54",
             'phone_number'=> "2612455960",
-            'password' => Hash::make('123456')
+            'password' => Hash::make('123456'),
+            //'role' => 'admin'
 
         ])->assignRole('admin');
 

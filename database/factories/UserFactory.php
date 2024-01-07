@@ -32,10 +32,12 @@ class UserFactory extends Factory
 
     public function configure()
     {
-        return $this->afterCreating(function ($user) {
-            $roles = Role::all(); // Obtener todos los roles existentes
-            $randomRole = $roles->random(); // Obtener un rol aleatorio
-            $user->assignRole($randomRole);
-        });
+    // Obtener todos los roles existentes una sola vez
+    $roles = Role::all();
+
+    return $this->afterCreating(function ($user) use ($roles) {
+        $randomRole = $roles->random(); // Obtener un rol aleatorio
+        $user->assignRole($randomRole);
+    });
     }
 }

@@ -21,7 +21,7 @@ $sectorManager = Role::create(['name'=> 'sectorManager']); //gerente de sector
 $depManager = Role::create(['name'=> 'depManager']);//gerente de departamento
 $depHead = Role::create(['name'=> 'depHead']);//jefe de departamento
 $depWorker = Role::create(['name'=> 'depWorker']);//operario de departamento
-$guess = Role::create(['name'=> 'guest']);//invitado
+$guest = Role::create(['name'=> 'guest']);//invitado
 
 
 //permission::create(['name'=>'user.index'])->syncRoles([$admin]); //listar los usuarios registrados en el dominio.

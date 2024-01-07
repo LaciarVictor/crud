@@ -14,6 +14,8 @@ use App\Http\Requests\UserRequests\UserCreateRequest;
 use App\Http\Requests\UserRequests\UserUpdateRequest;
 use App\Http\Requests\UserRequests\UserLoginRequest;
 
+use Illuminate\Support\Facades\Hash;
+
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Pagination\Paginator;
 
@@ -48,8 +50,7 @@ class UserService extends CrudService implements ICrudable
     {
         try {
 
-            //Crear el usuario.
-            $user = parent::create($request);
+            $user = $this->processUserCreation($request);
 
             return response()->json([
                 'user' => $this->setJSONResponse($user)
@@ -81,12 +82,11 @@ class UserService extends CrudService implements ICrudable
 
         try {
 
-            //Crear el usuario.
-            $user = parent::create($request);
+            $user = $this->processUserCreation($request);
 
             //Crear una solicitud para loguear al usuario.
             $userLoginRequest = new UserLoginRequest([
-                'user' => $user->userName,
+                'user' => $user->user_name,
                 'password' => $request->input('password')
             ]);
 
@@ -245,5 +245,44 @@ class UserService extends CrudService implements ICrudable
             'updated_at' => $user->updated_at,
             'role' => $role->name
         ];
+    }
+
+
+
+    /**
+     * Procesa la creación de un usuario.
+     *
+     * @param UserCreateRequest $request
+     * @return mixed
+     * @throws Exception
+     */
+    private function processUserCreation(UserCreateRequest $request)
+    {
+        // Obtener el rol y el password del request
+        $role = $request->input('rol');
+        $password = $request->input('password');
+
+        // Hashear el password
+        $hashedPassword = Hash::make($password);
+
+        // Modificar el request original
+        $request->merge(['password' => $hashedPassword]);
+        $request->offsetUnset('rol');
+
+        // Crear el usuario sin asignar el rol
+        $user = parent::create($request);
+
+        // Asignar el rol al usuario si la creación fue exitosa
+        if (!$user) {
+            throw new Exception('Error creando al usuario.');
+        }
+
+    // Si no se proporcionó un rol, o el role es inválido $roleExist = null;
+    $roleExist = Role::where('name', $role)->first();
+
+    //Si $roleExist = null, se asigna el rol 'guest', si no, el rol proporcionado.
+    $user->assignRole($roleExist ?: Role::where('name', 'guest')->first());
+
+    return $user;
     }
 }

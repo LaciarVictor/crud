@@ -54,79 +54,80 @@ class User extends Authenticatable
         parent::boot();
 
 
-        /**
-         * Esta función procesa el request JSON antes de guardarlo en la base de datos.
-         * El evento 'creating' se dispara antes de crear un nuevo registro.
-         * Dentro del evento 'creating' se puede modificar el modelo antes de ser guardado.
-         * El rol no pertenece al modelo User en la base de datos.
-         * 
-         * @param  \App\Models\User  $user
-         */
-        static::creating(function ($user) {
+        // /**
+        //  * Esta función procesa el request JSON antes de guardarlo en la base de datos.
+        //  * El evento 'creating' se dispara antes de crear un nuevo registro.
+        //  * Dentro del evento 'creating' se puede modificar el modelo antes de ser guardado.
+        //  * El rol no pertenece al modelo User en la base de datos.
+        //  * 
+        //  * @param  \App\Models\User  $user
+        //  */
+        // static::creating(function ($user) {
 
-            //Si la solicitud JSON tiene el campo password...
-            if (!empty($user->password)) {
+        //     //Si la solicitud JSON tiene el campo password...
+        //     if (!empty($user->password)) {
 
-                // Encriptar el password y asignarlo al usuario.
-                $user->password = Hash::make($user->password);
-            }
+        //         // Encriptar el password y asignarlo al usuario.
+        //         $user->password = Hash::make($user->password);
+        //     }
 
-            $role = Role::where('name', $user->role)->first();
+        //     $role = Role::where('name', $user->role)->first();
 
-            // Si el campo 'role' no está presente o no es válido, asigna el rol 'guest' por defecto.
-            if (empty($user->role) || empty($role)) {
+        //     // Si el campo 'role' no está presente o no es válido, asigna el rol 'guest' por defecto.
+        //     if (empty($user->role) || empty($role)) {
 
-                $role = Role::where('name', 'guest')->first();
-            }
+        //         $role = Role::where('name', 'guest')->first();
+        //     }
 
-            // Eliminar el campo rol del objeto JSON
-            if (!empty($user->role)) {
-                unset($user->role);
-            }
+        //     // Eliminar el campo rol del objeto JSON
+        //     if (!empty($user->role)) {
+        //         unset($user->role);
+        //     }
 
-            $user->assignRole($role);
-        });
+        //     $user->assignRole($role);
+        // });
 
-        /**
-         * Esta función procesa el request JSON antes de guardarlo en la base de datos.
-         * El evento 'filling' de eloquent se dispara antes de sobreescribir un registro.
-         * Dentro del evento 'filling' se puede modificar el modelo antes de ser guardado.
-         * El rol no pertenece al modelo User en la base de datos.
-         * 
-         * @param  \App\Models\User  $user
-         */
-        static::updating(function ($user) {
+        // /**
+        //  * Esta función procesa el request JSON antes de guardarlo en la base de datos.
+        //  * El evento 'filling' de eloquent se dispara antes de sobreescribir un registro.
+        //  * Dentro del evento 'filling' se puede modificar el modelo antes de ser guardado.
+        //  * El rol no pertenece al modelo User en la base de datos.
+        //  * 
+        //  * @param  \App\Models\User  $user
+        //  */
+        // static::updating(function ($user) {
 
-            //Si la solicitud JSON tiene el campo password...
-            if (!empty($user->password)) {
+        //     //Si la solicitud JSON tiene el campo password...
+        //     if (!empty($user->password)) {
 
-                // Encriptar el password y asignarlo al usuario.
-                $user->password = Hash::make($user->password);
-            }
+        //         // Encriptar el password y asignarlo al usuario.
+        //         $user->password = Hash::make($user->password);
+        //     }
 
-            $role = Role::where('name', $user->role)->first();
+        //     $role = Role::where('name', $user->role)->first();
 
-            // Si el campo 'role' no está presente o no es válido, asigna el rol 'guest' por defecto.
-            if (empty($user->role) || empty($role)) {
+        //     // Si el campo 'role' no está presente o no es válido, asigna el rol 'guest' por defecto.
+        //     if (empty($user->role) || empty($role)) {
 
-                $role = Role::where('name', 'guest')->first();
-            }
+        //         $role = Role::where('name', 'guest')->first();
+        //     }
 
-            // Eliminar el campo rol del objeto JSON
-            if (!empty($user->role)) {
-                unset($user->role);
-            }
+        //     // Eliminar el campo rol del objeto JSON
+        //     if (!empty($user->role)) {
+        //         unset($user->role);
+        //         $user->roles()->detach();
+        //     }
 
-            //eliminar el rol asociado anteriormente al usuario
-            $user->roles()->detach();
-            $user->assignRole($role);
-        });
+        //     //eliminar el rol asociado anteriormente al usuario
+ 
+        //     $user->assignRole($role);
+        // });
 
-        static::deleting(function ($user) {
-            // Realiza las acciones necesarias antes de eliminar el usuario
-            // Por ejemplo, puedes desasignar roles, eliminar relaciones, etc.
-           $user->roles()->detach();
-           $user->tokens()->delete();
-        });
+        // static::deleting(function ($user) {
+        //     // Realiza las acciones necesarias antes de eliminar el usuario
+        //     // Por ejemplo, puedes desasignar roles, eliminar relaciones, etc.
+        //    $user->roles()->detach();
+        //    $user->tokens()->delete();
+        // });
     }
 }

@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Laravel\Sanctum\PersonalAccessToken;
 use Carbon\Carbon;
 use App\Models\User;
+use Illuminate\Support\Facades\Hash;
 
 /**
  * Gestiona las autenticaciones de usuario
@@ -22,8 +23,13 @@ class AuthService
         // Validar las credenciales del usuario y generar el token de acceso
         $credentials = $request->only(['user_name', 'password']);
     
+        $coincide = Hash::check('123456', '$2y$12$jTxBUW.uhIVuOS/ff8oMjOpFOOGkvxc4sTZeUm/suZKDtjJ/1.oOK') ? true : false;
+
+
+
+        
         if (!Auth::attempt($credentials)) {
-            return response()->json(['message' => 'Usuario o contraseña incorrectos.'], 401);
+            return response()->json(['message' => 'Usuario o contraseña incorrectos.', 'La contraseña coincide?' => $coincide], 401);
         }
     
         // Obtener el usuario autenticado
