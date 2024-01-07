@@ -6,8 +6,8 @@ use App\Http\Requests\UserRequests\UserCreateRequest;
 use App\Http\Requests\UserRequests\UserUpdateRequest;
 use App\Models\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
-use App\Services\UserService;
-use App\Services\AuthService;
+use App\Services\User\UserService;
+use App\Services\User\AuthService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Pagination\LengthAwarePaginator;
 
@@ -126,10 +126,10 @@ class UserController extends Controller
     /**
      * Trata de devolver un usuario proporcionando su id.
      *
-     * @param string $id
+     * @param int $id
      * @return JsonResponse
      */
-    public function show(string $id):JsonResponse
+    public function show(int $id):JsonResponse
     {
         try {
 
@@ -149,10 +149,10 @@ class UserController extends Controller
      * Trata de actualizar un usuario en la base de datos.
      *
      * @param UserUpdateRequest $request
-     * @param string $id
+     * @param int $id
      * @return JsonResponse
      */
-    public function update(UserUpdateRequest $request, string $id):JsonResponse
+    public function update(UserUpdateRequest $request, int $id):JsonResponse
     {
         try {
 
@@ -174,10 +174,10 @@ class UserController extends Controller
     /**
      * Trata de borrar un usuario por su id.
      *
-     * @param string $id
+     * @param int $id
      * @return JsonResponse
      */
-    public function destroy(string $id):JsonResponse
+    public function destroy(int $id):JsonResponse
     {
         try {
             $this->userService->deleteUser($id);

@@ -4,28 +4,22 @@ namespace App\Services;
 
 use App\Interfaces\ICrudable;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Pagination\Paginator;
 
 /**
- * Operaciones generales CRUD.
+* Clase abstracta que define los metodos comunes para las operaciones CRUD.
  */
 abstract class CrudService implements ICrudable
 {
     /**
-     * El modelo principal.
+     * El modelo que se va a utilizar.
      *
      * @var Model
      */
     protected $model;
 
-
-
-
     /**
-     * Recibe el modelo que utilizará el crud.
-     *
+     * Crea una nueva instancia de CrudService.
      * @param Model $model
      */
     public function __construct(Model $model)
@@ -33,93 +27,63 @@ abstract class CrudService implements ICrudable
         $this->model = $model;
     }
 
-
-
     /**
-     * Crea una nueva instancia del modelo,
-     * lo guarda en la base de datos,
-     * y devuelve el modelo creado.
+     * Crea una nueva instancia del modelo y la guarda en la base de datos.
      *
      * @param object $request
-     * @return array
+     * @return Model|null
      */
-    public function create(object $request): array
+    public function create(object $request): ?Model
     {
         $modelData = $request->validated();
-
         $model = $this->model->create($modelData);
-        //Asignar valores al modelo, quitando aquellos que
-        //necesitan ser procesados, para asignarlos luego. Ej: password.
 
-
-        $model->save();
-
-        return $this->setFormatResponse($model);
+        return $model;
     }
 
-
-
-
     /**
-     * Devuelve la instancia del modelo,
-     * aplica las actualizaciones,
-     * y las guarda en la base de datos.
+     * Actualiza la instancia del modelo y la guarda en la base de datos.
      *
      * @param integer $id
-     * @param array $data
-     * @return array
+     * @param object $request
+     * @return Model|null
      */
-    public function update(int $id, array $data): ?array
+    public function update(int $id, object $request): ?Model
     {
         $model = $this->findModelById($id);
+        $validationRequest = $request->validated();
 
-        if($model)
-        {
-            $model->fill($data);
+        if ($model) {
+            $model->fill($validationRequest);
+            $model->save();
 
-            $model->save();   
-            return $this->setFormatResponse($model);
-
+            return $model;
         }
-            return null;
 
+        return null;
     }
 
-
-
-
-
-
-
-
-
     /**
-     * Busca la instancia del modelo de la base de datos.
+     * Elimina la instancia del modelo de la base de datos.
      *
      * @param integer $id
      * @return void
      */
-    public function delete(int $id): void
+    public function delete(int $id): bool
     {
-        $model = $this->findModelById($id);
-        $model->delete();
+        return $this->findModelById($id)->delete();
     }
+    
 
-
-
-
-    //Se declara abstracta porque se desconocen las relaciones entre identidades.
+    /**
+     * Busca la instancia del modelo por su id.
+     *
+     * @param integer $id
+     * @return Model|null
+     */
     public function findModelById(int $id): ?Model
     {
-
-        $m = $this->model->findOrFail($id);
-        if($m)
-        {
-            return $m;
-
-        }
-        return null;
-
+        return $this->model->find($id);
 
     }
 
@@ -127,43 +91,25 @@ abstract class CrudService implements ICrudable
 
 
     /**
-     * Devuelve todos los registros del modelo.
-     *
+     * Devuelve todos los registros del modelo paginados. Por defecto devuelve 10 registros.
+     * 
      * @param integer $perPage
      * @return LengthAwarePaginator
      */
-    public function findAllModels(int $perPage = 10): ?LengthAwarePaginator
+    public function findAllModels(int $perPage = 10): ? LengthAwarePaginator
     {
-        $modelsPaginator = $this->model->paginate($perPage);
-
-        $models = collect($modelsPaginator->items());
-
-        $formattedModels = $models->map(function ($model) {
-            return $this->setFormatResponse($model);
-        });
-
-        $paginator = new LengthAwarePaginator(
-            $formattedModels,
-            $modelsPaginator->total(),
-            $modelsPaginator->perPage(),
-            $modelsPaginator->currentPage(),
-            [
-                'path' => Paginator::resolveCurrentPath(),
-                'query' => request()->query(),
-            ]
-        );
-
-        return $paginator;
+        return $this->model->paginate($perPage);
     }
 
 
 
 
+
     /**
-     * Especifica el formato personalizado en el que se devolverá el modelo.
+     * Especifica el formato JSON personalizado en el que se devolverá el modelo.
      *
      * @param Model $model
      * @return array
      */
-    abstract public function setFormatResponse(Model $model): array;
+    abstract public function setJSONResponse(Model $model): array;
 }

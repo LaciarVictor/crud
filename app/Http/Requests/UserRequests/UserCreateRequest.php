@@ -3,8 +3,9 @@
 namespace App\Http\Requests\UserRequests;
 
 use Illuminate\Validation\Rule;
+use App\Http\Requests\BaseRequest;
 
-class UserCreateRequest extends UserBaseRequest
+class UserCreateRequest extends BaseRequest
 {
     /**
      * Get the validation rules that apply to the request.
@@ -14,11 +15,11 @@ class UserCreateRequest extends UserBaseRequest
     public function rules(): array
     {
         return [
-            'userName' => ['required', 'string', 'max:100', Rule::unique('users', 'name')],
-            'firstName' => ['nullable', 'string', 'max:100'],
-            'lastName' => ['nullable', 'string', 'max:100'],
-            'phoneCode' => ['nullable', 'string', 'max:100'],
-            'phoneNumber' => ['nullable', 'string', 'max:100'],
+            'user_name' => ['required', 'string', 'max:100', Rule::unique('users', 'user_name')],
+            'first_name' => ['nullable', 'string', 'max:100'],
+            'last_name' => ['nullable', 'string', 'max:100'],
+            'phone_code' => ['nullable', 'string', 'max:4'],
+            'phone_number' => ['nullable', 'string', 'max:100'],
             'email' => ['required', 'email', 'string', 'max:100', Rule::unique('users', 'email')],
             'password' => ['required', 'min:6', 'confirmed'],
             'role' => ['nullable', Rule::exists('roles', 'id')],
@@ -28,7 +29,7 @@ class UserCreateRequest extends UserBaseRequest
     public function messages(): array
     {
         return [
-            'userName.unique' => __('El usuario ya existe.'),
+            'user_name.unique' => __('El usuario ya existe.'),
             'email.unique' => __('El email ya existe.'),
             'role.exists' => __('El rol no existe.'),
         ];

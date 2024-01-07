@@ -13,12 +13,12 @@ class UserFactory extends Factory
     public function definition(): array
     {
         return [
-            'userName' => $this->faker->unique()->userName(),
-            'firstName' => $this->faker->unique()->name(),
-            'lastName' => $this->faker->unique()->name(),
+            'user_name' => $this->faker->unique()->userName(),
+            'first_name' => $this->faker->unique()->name(),
+            'last_name' => $this->faker->unique()->name(),
             'email' => $this->faker->unique()->safeEmail(),
-            'phoneCode' => strval($this->faker->numberBetween(1, 399)),
-            'phoneNumber' => strval($this->faker->numberBetween(100000, 999999999)),
+            'phone_code' => strval($this->faker->numberBetween(1, 399)),
+            'phone_number' => strval($this->faker->numberBetween(100000, 999999999)),
             'password' => static::$password ??= Hash::make('password'),
         ];
     }

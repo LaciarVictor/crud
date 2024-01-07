@@ -17,23 +17,23 @@ class UserSeeder extends Seeder
     {
         User::create([
 
-            'userName' => "laciarvictor",
-            'firstName'=> "Victor Eduardo",
-            'lastName'=> "Victor Eduardo",
+            'user_name' => "laciarvictor",
+            'first_name'=> "Victor Eduardo",
+            'last_name'=> "Victor Eduardo",
             'email' => "laciarvictor@gmail.com",
-            'phoneCode'=> "54",
-            'phoneNumber'=> "1144138057",
+            'phone_code'=> "54",
+            'phone_number'=> "1144138057",
             'password' => Hash::make('123456')
 
         ])->assignRole('admin');
 
         User::create([
-            'userName' => "decxx1",
-            'firstName'=> "Damián",
-            'lastName'=> "Cisternas",
+            'user_name' => "decxx1",
+            'first_name'=> "Damián",
+            'last_name'=> "Cisternas",
             'email' => "decxx1@gmail.com",
-            'phoneCode'=> "54",
-            'phoneNumber'=> "2612455960",
+            'phone_code'=> "54",
+            'phone_number'=> "2612455960",
             'password' => Hash::make('123456')
 
         ])->assignRole('admin');

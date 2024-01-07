@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Requests\UserRequests;
+namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Foundation\Validation\ValidatesRequests;
@@ -10,9 +10,9 @@ use Illuminate\Http\Exceptions\HttpResponseException;
 
 
 /**
- * Super clase para el request de los usuarios
+ * Super clase para el request 
  */
-class UserBaseRequest extends FormRequest
+class BaseRequest extends FormRequest
 {
 
     use ValidatesRequests;

@@ -28,7 +28,8 @@ class TokenVerificationController extends Controller
         // Si hay un token valido, y asignado a un usuario...
         if ($token && $user) {   
 
-            return response()->json(['status' => true]);
+            //return response()->json(['status' => true]);
+            return response()->json(['status' => true, 'user' => $user]);
         }
 
         return response()->json(['status' => false]);

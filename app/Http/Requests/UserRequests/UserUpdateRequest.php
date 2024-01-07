@@ -3,8 +3,9 @@
 namespace App\Http\Requests\UserRequests;
 
 use Illuminate\Validation\Rule;
+use App\Http\Requests\BaseRequest;
 
-class UserUpdateRequest extends UserBaseRequest
+class UserUpdateRequest extends BaseRequest
 {
     /**
      * Get the validation rules that apply to the request.
@@ -16,11 +17,11 @@ class UserUpdateRequest extends UserBaseRequest
         $userId = $this->route('user'); // Obtén el ID del usuario que se está actualizando
 
         return [
-            'userName' => ['required', 'string', 'max:100', Rule::unique('users', 'name')->ignore($userId)],
-            'firstName' => ['nullable', 'string', 'max:100'],
-            'lastName' => ['nullable', 'string', 'max:100'],
-            'phoneCode' => ['nullable', 'string', 'max:100'],
-            'phoneNumber' => ['nullable', 'string', 'max:100'],
+            'user_name' => ['required', 'string', 'max:100', Rule::unique('users', 'user_name')->ignore($userId)],
+            'first_name' => ['nullable', 'string', 'max:100'],
+            'last_name' => ['nullable', 'string', 'max:100'],
+            'phone_code' => ['nullable', 'string', 'max:100'],
+            'phone_number' => ['nullable', 'string', 'max:100'],
             'email' => ['required', 'email', 'string', 'max:100', Rule::unique('users', 'email')->ignore($userId)],
             'password' => ['required', 'min:6', 'confirmed'],
             'role' => ['nullable', Rule::exists('roles', 'id')],
@@ -30,7 +31,7 @@ class UserUpdateRequest extends UserBaseRequest
     public function messages(): array
     {
         return [
-            'userName.unique' => __('El usuario ya existe.'),
+            'user_name.unique' => __('El usuario ya existe.'),
             'email.unique' => __('El email ya existe.'),
             'role.exists' => __('El rol no existe.'),
         ];

@@ -2,11 +2,11 @@
 
 namespace App\Http\Requests\UserRequests;
 
-use Illuminate\Validation\Rule;
+use App\Http\Requests\BaseRequest;
 
 
 
-class UserLoginRequest extends UserBaseRequest
+class UserLoginRequest extends BaseRequest
 {
 
 
@@ -21,7 +21,7 @@ class UserLoginRequest extends UserBaseRequest
        
 
         return [
-            'userName' => ['required', 'string', 'max:100'], 
+            'user_name' => ['required', 'string', 'max:100'], 
             'password' => ['required', 'min:6']
         ];
     }
