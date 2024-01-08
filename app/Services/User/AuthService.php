@@ -35,19 +35,26 @@ class AuthService
         // Obtener el usuario autenticado
         $user = Auth::user();
         $tokens = $user->tokens;
+
+
     
         // Verificar si el usuario tiene tokens
         if ($tokens->isNotEmpty()) {
             // Verificar si al menos uno de los tokens es válido
             if ($tokens->every(function ($token) {
-                return !$token->expired();
+                return !$token->expires_at->isPast();
             })) {
-                return response()->json(['message' => 'El usuario ya tiene una sesión activa.'], 403);
+            // El usuario ya tiene una sesión activa, devolver mensaje y token
+            return response()->json([
+                'message' => 'El usuario ya tiene una sesión activa.',
+                'token' => $tokens->first()->plainTextToken, // Obtener el token activo
+            ], 403);
+                       
             }
     
             // Eliminar todos los tokens expirados
             $tokens->filter(function ($token) {
-                return $token->expired();
+                return $token->expires_at->isPast();
             })->each(function ($token) {
                 $token->delete();
             });
