@@ -246,9 +246,11 @@ class UserService extends CrudService implements ICrudable
     {
         $user = $userData;
 
-        $role = $user->roles->first();
+        $role_id = $user->roles->first()->id;
 
-        $role_id = $role ? $role->id : null;
+        $role_table =  Role::where('id', $role_id)->first();
+
+        $role_name = $role_table->name;
 
         
         return [
@@ -261,7 +263,7 @@ class UserService extends CrudService implements ICrudable
             'email' => $user->email,
             'created_at' => $user->created_at,
             'updated_at' => $user->updated_at,
-            'role' => $role_id
+            'role' => $role_name
            ];
     }
 
