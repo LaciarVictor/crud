@@ -50,7 +50,10 @@ class UserService extends CrudService implements ICrudable
     {
         try {
 
-            $user = $this->processUserCreation($request);
+            list($processedRequest, $role) = $this->processUserRequest($request);
+            
+            $user = parent::create($processedRequest);
+            $this->setRole($role, $user);
 
             return response()->json([$this->setJSONResponse($user)]);
         } catch (ValidationException $ex) {
@@ -81,8 +84,11 @@ class UserService extends CrudService implements ICrudable
         try {
 
             $userPassword = $request->input('password');
-
-            $user = $this->processUserCreation($request);
+            
+            list($processedRequest, $role) = $this->processUserRequest($request);
+            
+            $user = parent::create($processedRequest);
+            $this->setRole($role, $user);
 
             //Crear una solicitud para loguear al usuario.
             $userLoginRequest = new UserLoginRequest([
@@ -90,18 +96,18 @@ class UserService extends CrudService implements ICrudable
                 'password' => $userPassword
             ]);
 
-        // Loguear al usuario y obtener la respuesta JSON.
-        $loginResponse = $this->authservice->login($userLoginRequest);
+            // Loguear al usuario y obtener la respuesta JSON.
+            $loginResponse = $this->authservice->login($userLoginRequest);
 
-        // Extraer el token de la respuesta JSON.
-        $token = $loginResponse->original['token'];
+            // Extraer el token de la respuesta JSON.
+            $token = $loginResponse->original['token'];
 
-        // Agregar el token al array del usuario.
-        $userArray = $this->setJSONResponse($user);
-        $userArray['token'] = $token;
+            // Agregar el token al array del usuario.
+            $userArray = $this->setJSONResponse($user);
+            $userArray['token'] = $token;
 
-        // Devolver el usuario y el token en el mismo array JSON.
-        return response()->json($userArray);
+            // Devolver el usuario y el token en el mismo array JSON.
+            return response()->json($userArray);
         } catch (ValidationException $ex) {
 
             return response()->json(['message' => $ex->validator->errors()], 422);
@@ -120,9 +126,12 @@ class UserService extends CrudService implements ICrudable
     public function userUpdate(UserUpdateRequest $request, int $id): JsonResponse
     {
         try {
+           
+            list($processedRequest, $role) = $this->processUserRequest($request);
+            
+            $user = parent::update($id, $processedRequest);
+            $this->setRole($role, $user);
 
-            //Crear el usuario.
-            $user = parent::update($id, $request);
 
             if ($user) {
                 return $this->setJSONResponse($user);
@@ -201,6 +210,7 @@ class UserService extends CrudService implements ICrudable
             );
 
             return $paginator;
+            
         } catch (ValidationException $ex) {
             return response()->json(['message' => $ex->validator->errors()], 422);
         } catch (Exception $ex) {
@@ -235,58 +245,71 @@ class UserService extends CrudService implements ICrudable
     public function setJSONResponse($userData): array
     {
         $user = $userData;
+
         $role = $user->roles->first();
 
+        $role_id = $role ? $role->id : null;
+
+        
         return [
             'id' => $user->id,
             'user_name' => $user->user_name,
-            'first_name' => optional($user->first_name)->id,
-            'last_name' => optional($user->last_name)->id,
-            'phone_code' => optional($user->phone_code)->id,
-            'phone_number' => optional($user->phone_number)->id,
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'phone_code' => $user->phone_code,
+            'phone_number' => $user->phone_number,
             'email' => $user->email,
             'created_at' => $user->created_at,
             'updated_at' => $user->updated_at,
-            'role' => $role->name
-        ];
+            'role' => $role_id
+           ];
     }
 
 
 
     /**
-     * Procesa la creación de un usuario.
+     * Hashea el password del request y elimina el rol del request.
      *
      * @param UserCreateRequest $request
      * @return mixed
      * @throws Exception
      */
-    private function processUserCreation(UserCreateRequest $request)
+    private function processUserRequest(object $request): array
     {
         // Obtener el rol y el password del request
         $role = $request->input('rol');
         $password = $request->input('password');
 
         // Hashear el password
-        $hashedPassword = Hash::make($password);
-
-        // Modificar el request original
-        $request->merge(['password' => $hashedPassword]);
-        $request->offsetUnset('rol');
-
-        // Crear el usuario sin asignar el rol
-        $user = parent::create($request);
-
-        // Asignar el rol al usuario si la creación fue exitosa
-        if (!$user) {
-            throw new Exception('Error creando al usuario.');
+        if ($password) {
+            $hashedPassword = Hash::make($password);
+            // Modificar el request original
+            $request->merge(['password' => $hashedPassword]);
+        }
+        if ($role) {
+            $request->offsetUnset('rol');
+            return [$request,$role];
         }
 
-    // Si no se proporcionó un rol, o el role es inválido $roleExist = null;
-    $roleExist = Role::where('name', $role)->first();
+        return [$request,null];
+    }
 
-    //Si $roleExist = null, se asigna el rol 'guest', si no, el rol proporcionado.
-    $user->assignRole($roleExist ?: Role::where('name', 'guest')->first());
 
-    return $user;
+
+    /**
+     * Asigna el rol al usuario.
+     *
+     * @param ?string $role El rol del usuario, puede ser nulo.
+     * @param User $user
+     * @return void
+     */
+    private function setRole (?string $role, User $user): void
+    {
+        if($role){
+
+            $roleExist = Role::where('name', $role)->first();
+            $user->assignRole($roleExist ?: Role::where('name', 'guest')->first());
+        }
+
     }
 }

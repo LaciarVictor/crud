@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UserRequests\UserLoginRequest;
 use App\Services\User\AuthService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 
@@ -37,15 +38,9 @@ class AuthController extends Controller
     * @param UserLoginRequest $request
     * @return void
     */
-    public function login(UserLoginRequest $request)
+    public function login(UserLoginRequest $request): JsonResponse
     {
-        try {
-
             return $this->authService->login($request);
-
-        } catch (\Throwable $e) {
-            return response()->json(['message' => 'Error en el proceso de autenticación.', 'error' => $e->getMessage()], 500);
-        }
     }
 
 
@@ -56,16 +51,11 @@ class AuthController extends Controller
      * @param Request $request
      * @return void
      */
-    public function logout(Request $request)
+    public function logout(Request $request): JsonResponse
     {
-        try 
-        {
+
             return $this->authService->logout($request);
 
-        } 
-    catch (\Throwable $e) {
-        return response()->json(['message' => 'Error en el proceso de cierre de sesión.', 'error' => $e->getMessage()], 500);
-    }
     }
 
 

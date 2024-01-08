@@ -9,7 +9,8 @@ use Illuminate\Http\JsonResponse;
 use Laravel\Sanctum\PersonalAccessToken;
 use Carbon\Carbon;
 use App\Models\User;
-use Illuminate\Support\Facades\Hash;
+
+use Exception;
 
 /**
  * Gestiona las autenticaciones de usuario
@@ -20,74 +21,51 @@ class AuthService
 
     public function login(UserLoginRequest $request): JsonResponse
     {
-        // Validar las credenciales del usuario y generar el token de acceso
-        $credentials = $request->only(['user_name', 'password']);
-    
-        //$coincide = Hash::check('123456', '$2y$12$jTxBUW.uhIVuOS/ff8oMjOpFOOGkvxc4sTZeUm/suZKDtjJ/1.oOK') ? true : false;
+        try {
+            $credentials = $request->only(['user_name', 'password']);
 
-
-
-        
-        if (!Auth::attempt($credentials)) {
-            return response()->json(['message' => 'Usuario o contraseña incorrectos.'], 401);
-        }
-    
-        // Obtener el usuario autenticado
-        $user = Auth::user();
-        $tokens = $user->tokens;
-
-
-    
-        // Verificar si el usuario tiene tokens
-        if ($tokens->isNotEmpty()) {
-            // Verificar si al menos uno de los tokens es válido
-            if ($tokens->every(function ($token) {
-                return !$token->expires_at->isPast();
-            })) {
-            // El usuario ya tiene una sesión activa, devolver mensaje y token
-            return response()->json([
-                'message' => 'El usuario ya tiene una sesión activa.',
-                'token' => $tokens->first()->plainTextToken, // Obtener el token activo
-            ], 403);
-                       
+            if (!Auth::attempt($credentials)) {
+                return response()->json(['message' => 'Usuario o contraseña incorrectos.'], 401);
             }
-    
-            // Eliminar todos los tokens expirados
-            $tokens->filter(function ($token) {
-                return $token->expires_at->isPast();
-            })->each(function ($token) {
-                $token->delete();
-            });
+
+            $user = Auth::user();
+
+            //Se asume que el usuario puede estar logueandose porque su token ha expirado.
+            //Ver Comando tokens:clean.
+            $this->revokeExpiredTokens($user);
+
+
+            $accessToken = $this->createUserAccessToken($user);
+
+            return response()->json(['message' => "Login existoso!",'token' => $accessToken]);
+        } catch (Exception $ex) {
+            return response()->json(['message' => "Error loguando al usuario.", 'error' => $ex->getMessage()], 500);
         }
-    
-        // Crear un nuevo token de acceso para el usuario
-        $accessToken = $this->createUserAccessToken($user);
-    
-        // Devolver el token de acceso
-        return response()->json(['token' => $accessToken]);
     }
-    
+
 
 
 
     public function logout(Request $request)
     {
-        $token = $request->bearerToken();
+        try {
+            $token = $request->bearerToken();
 
-        $personalAccessToken = PersonalAccessToken::findToken($token);
+            $personalAccessToken = PersonalAccessToken::findToken($token);
 
-        if ($personalAccessToken) {
-            $user = $personalAccessToken->tokenable;
-            $user->tokens()->delete();
+            if ($personalAccessToken) {
+                $user = $personalAccessToken->tokenable;
+                $user->tokens()->delete();
 
-            return response()->json(['message' => 'Cierre de sesión exitoso.']);
+                return response()->json(['message' => 'Cierre de sesión exitoso.']);
+            } else {
+                return response()->json(['message' => 'La solicitud debe contener un token de acceso activo.'], 404);
+            }
+
+            return response()->json(['message' => 'Error en el cierre de sesión.'], 500);
+        } catch (Exception $ex) {
+            return response()->json(['message' => "Error desconocido en el cierre de sesión.", 'error' => $ex->getMessage()], 500);
         }
-        else
-        {
-            return response()->json(['message' => 'La solicitud debe contener un token de acceso activo, por favor verifique'], 404);
-        }
-
-        return response()->json(['message' => 'Error en el cierre de sesión.'], 500);
     }
 
 
@@ -95,42 +73,67 @@ class AuthService
 
     public function createUserAccessToken(User $user): string
     {
-        // Devuelve el token existente si ya tiene uno
-        $existingToken = $user->currentAccessToken();
+        try {
+            // Devuelve el token existente si ya tiene uno
+            $existingToken = $user->currentAccessToken();
 
-        if ($existingToken !== null) {
-            return $existingToken->plainTextToken;
+            if ($existingToken !== null) {
+                return $existingToken->plainTextToken;
+            }
+
+            // Generar un nuevo token de acceso
+            $token = $user->createToken('token');
+
+            // Agregar una expiración de 30 minutos al token
+            $this->updateTokenExpiration($token->accessToken);
+
+            return $token->plainTextToken;
+        } catch (Exception $ex) {
+            return response()->json(['message' => "Error generando el token.", 'error' => $ex->getMessage()], 500);
         }
-
-        // Generar un nuevo token de acceso
-        $token = $user->createToken('token');
-
-        // Agregar una expiración de 30 minutos al token
-        $this->updateTokenExpiration($token->accessToken);
-
-        return $token->plainTextToken;
     }
 
 
 
 
-    public function updateTokenExpiration($token): void
+    public function updateTokenExpiration($token)
     {
-        $token->forceFill([
-            'expires_at' => Carbon::now()->addMinutes(30)
-        ])->save();
+        try {
+            $token->forceFill([
+                'expires_at' => Carbon::now()->addMinutes(30)
+            ])->save();
+        } catch (Exception $ex) {
+            return response()->json(['message' => "Error actualizando expiración del token.", 'error' => $ex->getMessage()], 500);
+        }
     }
 
 
 
 
-    public function updateUserTokenExpiration(Request $request): void
+    public function updateUserTokenExpiration(Request $request)
     {
-        $user = $request->user();
+        try {
+            $user = $request->user();
 
-        if ($user) {
-            $token = $user->currentAccessToken();
-            $this->updateTokenExpiration($token);
+            if ($user) {
+                $token = $user->currentAccessToken();
+                $this->updateTokenExpiration($token);
+            }
+        } catch (Exception $ex) {
+            return response()->json(['message' => "Error actualizando expiración del token en el usuario.", 'error' => $ex->getMessage()], 500);
         }
+    }
+
+    private function revokeExpiredTokens($user)
+    {
+        // Obtener todos los tokens del usuario
+        $tokens = $user->tokens;
+
+        // Filtrar y eliminar los tokens expirados
+        $tokens->each(function ($token) {
+            if ($token->expires_at < now()) {
+                $token->delete();
+            }
+        });
     }
 }
