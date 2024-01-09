@@ -13,7 +13,7 @@ use Spatie\Permission\Models\Role;
 use App\Http\Requests\UserRequests\UserCreateRequest;
 use App\Http\Requests\UserRequests\UserUpdateRequest;
 use App\Http\Requests\UserRequests\UserLoginRequest;
-
+use DateTime;
 use Illuminate\Support\Facades\Hash;
 
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -261,8 +261,8 @@ class UserService extends CrudService implements ICrudable
             'phone_code' => $user->phone_code,
             'phone_number' => $user->phone_number,
             'email' => $user->email,
-            'created_at' => $user->created_at,
-            'updated_at' => $user->updated_at,
+            'created_at' => $this->formattedDate($user->created_at),
+            'updated_at' => $this->formattedDate($user->updated_at),
             'role' => $role_name
         ];
     }
@@ -294,6 +294,15 @@ class UserService extends CrudService implements ICrudable
         }
 
         return [$request, null];
+    }
+
+    function formattedDate($timestamp): string
+     {
+        // Crear un objeto DateTime a partir del timestamp
+        $date = new DateTime($timestamp);
+    
+        // Reformatear la fecha al formato dd:mm:yyyy
+        return $date->format('d/m/Y');
     }
 
 
