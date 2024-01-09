@@ -21,7 +21,7 @@ public function boot()
 namespace App\Policies;
 
 use App\Models\User;
-use \Illuminate\Support\Facades\Log;
+use Illuminate\Auth\Access\AuthorizationException;
 
 
 class UserPolicy
@@ -63,10 +63,10 @@ class UserPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user): bool
+    public function update(User $loggedInUser, User $targetUser): bool
     {
-        return $user->hasRole('admin');
-    }
+        return $loggedInUser->hasRole('admin') || $loggedInUser->id === $targetUser->id;
+    }    
 
     /**
      * Determine whether the user can delete the model.
