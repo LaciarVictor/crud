@@ -31,6 +31,8 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 //AUTH ROUTES
 Route::middleware('auth:sanctum',AuthMiddleware::class)->group(function () {
 
+
+
 //Estas rutas son sólo para usuarios autenticados.
     Route::apiResource('users', UserController::class);
     Route::apiResource('roles', RoleController::class);

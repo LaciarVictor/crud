@@ -12,6 +12,7 @@ use Illuminate\Pagination\LengthAwarePaginator;
 
 
 
+
 /**
  * Esta clase controla al modelo User
  */
@@ -39,7 +40,7 @@ class UserController extends Controller
         /**
          * utilizar UserPolicy para gestionar los permisos de acceso a los métodos del controlador.
          */
-        $this->authorizeResource(User::class, 'user');
+        //$this->authorizeResource(User::class, 'user');
 
         
     }
@@ -54,6 +55,8 @@ class UserController extends Controller
      */
     public function index(): ?LengthAwarePaginator
     {
+        $this->authorize('index', User::class);
+
         try {
 
             $perPage = request()->input('perPage', 10);
@@ -79,7 +82,7 @@ class UserController extends Controller
  */
     public function store(UserCreateRequest $request):JsonResponse
     {
-       
+        $this->authorize('store', User::class);
         return $this->userService->userCreate($request);
 
     }
@@ -97,7 +100,7 @@ class UserController extends Controller
     public function register(UserCreateRequest $request):JsonResponse
     {
 
-
+        $this->authorize('register', User::class);
         return $this->userService->userRegister($request);
 
 
@@ -114,6 +117,7 @@ class UserController extends Controller
      */
     public function show(int $id):JsonResponse
     {
+        $this->authorize('show', User::class);
 
         return $this->userService->findUser($id);
 
@@ -131,6 +135,7 @@ class UserController extends Controller
      */
     public function update(UserUpdateRequest $request, int $id):JsonResponse
     {
+        $this->authorize('update', User::class);
         return $this->userService->userUpdate($request,$id);
     }
 
@@ -145,6 +150,7 @@ class UserController extends Controller
      */
     public function destroy(int $id):JsonResponse
     {
+        $this->authorize('destroy', User::class);
         return $this->userService->deleteUser($id);
     }
 

@@ -17,14 +17,14 @@ class UserUpdateRequest extends BaseRequest
         $userId = $this->route('user'); // Obtén el ID del usuario que se está actualizando
 
         return [
-            'user_name' => ['required', 'string', 'max:100', Rule::unique('users', 'user_name')->ignore($userId)],
+            'user_name' => ['string', 'max:100', Rule::unique('users', 'user_name')->ignore($userId)],
             'first_name' => ['nullable', 'string', 'max:100'],
             'last_name' => ['nullable', 'string', 'max:100'],
             'phone_code' => ['nullable', 'string', 'max:100'],
             'phone_number' => ['nullable', 'string', 'max:100'],
-            'email' => ['required', 'email', 'string', 'max:100', Rule::unique('users', 'email')->ignore($userId)],
-            'password' => ['required', 'min:6', 'confirmed'],
-            'role' => ['nullable', Rule::exists('roles', 'id')],
+            'email' => ['email', 'string', 'max:100', Rule::unique('users', 'email')->ignore($userId)],
+            'password' => [ 'min:6', 'confirmed'],
+            'role' => ['nullable', Rule::exists('roles', 'name')],
         ];
     }
 

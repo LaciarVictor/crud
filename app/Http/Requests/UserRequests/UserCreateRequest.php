@@ -22,7 +22,7 @@ class UserCreateRequest extends BaseRequest
             'phone_number' => ['nullable', 'string', 'max:100'],
             'email' => ['required', 'email', 'string', 'max:100', Rule::unique('users', 'email')],
             'password' => ['required', 'min:6', 'confirmed'],
-            'role' => ['nullable', Rule::exists('roles', 'id')],
+            'role' => ['nullable', Rule::exists('roles', 'name')],
         ];
     }
 

@@ -11,14 +11,14 @@ class Role extends Model
     use HasFactory;
 
 
-     /**
-     * La relación muchos a muchos con los usuarios.
-     *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
-     */
-    public function users()
-    {
-        return $this->belongsToMany(User::class, 'model_has_roles', 'role_id', 'model_id');
-    }
+    //  /**
+    //  * La relación muchos a muchos con los usuarios.
+    //  *
+    //  * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    //  */
+    // public function users()
+    // {
+    //     return $this->belongsToMany(User::class, 'model_has_roles', 'role_id', 'model_id');
+    // }
 
 }

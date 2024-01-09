@@ -50,13 +50,16 @@ class UserService extends CrudService implements ICrudable
     {
         try {
 
+
             list($processedRequest, $role) = $this->processUserRequest($request);
-            
+
             $user = parent::create($processedRequest);
+
             $this->setRole($role, $user);
 
             return response()->json([$this->setJSONResponse($user)]);
         } catch (ValidationException $ex) {
+
 
             return response()->json(['message' => $ex->validator->errors()], 422);
         } catch (Exception $ex) {
@@ -84,9 +87,9 @@ class UserService extends CrudService implements ICrudable
         try {
 
             $userPassword = $request->input('password');
-            
+
             list($processedRequest, $role) = $this->processUserRequest($request);
-            
+
             $user = parent::create($processedRequest);
             $this->setRole($role, $user);
 
@@ -126,15 +129,15 @@ class UserService extends CrudService implements ICrudable
     public function userUpdate(UserUpdateRequest $request, int $id): JsonResponse
     {
         try {
-           
+
             list($processedRequest, $role) = $this->processUserRequest($request);
-            
+
             $user = parent::update($id, $processedRequest);
             $this->setRole($role, $user);
 
 
             if ($user) {
-                return $this->setJSONResponse($user);
+                return response()->json($this->setJSONResponse($user));
             } else {
                 throw new ModelNotFoundException('No se encontró el usuario');
             }
@@ -210,7 +213,6 @@ class UserService extends CrudService implements ICrudable
             );
 
             return $paginator;
-            
         } catch (ValidationException $ex) {
             return response()->json(['message' => $ex->validator->errors()], 422);
         } catch (Exception $ex) {
@@ -248,11 +250,9 @@ class UserService extends CrudService implements ICrudable
 
         $role_id = $user->roles->first()->id;
 
-        $role_table =  Role::where('id', $role_id)->first();
+        $role_name = Role::where('id', $role_id)->first()->name;
 
-        $role_name = $role_table->name;
 
-        
         return [
             'id' => $user->id,
             'user_name' => $user->user_name,
@@ -264,7 +264,7 @@ class UserService extends CrudService implements ICrudable
             'created_at' => $user->created_at,
             'updated_at' => $user->updated_at,
             'role' => $role_name
-           ];
+        ];
     }
 
 
@@ -279,7 +279,7 @@ class UserService extends CrudService implements ICrudable
     private function processUserRequest(object $request): array
     {
         // Obtener el rol y el password del request
-        $role = $request->input('rol');
+        $role = $request->input('role');
         $password = $request->input('password');
 
         // Hashear el password
@@ -289,11 +289,11 @@ class UserService extends CrudService implements ICrudable
             $request->merge(['password' => $hashedPassword]);
         }
         if ($role) {
-            $request->offsetUnset('rol');
-            return [$request,$role];
+            $request->offsetUnset('role');
+            return [$request, $role];
         }
 
-        return [$request,null];
+        return [$request, null];
     }
 
 
@@ -305,13 +305,10 @@ class UserService extends CrudService implements ICrudable
      * @param User $user
      * @return void
      */
-    private function setRole (?string $role, User $user): void
+    private function setRole(?string $role, User $user): void
     {
-        if($role){
 
-            $roleExist = Role::where('name', $role)->first();
-            $user->assignRole($roleExist ?: Role::where('name', 'guest')->first());
-        }
-
+        $user->assignRole($role?: 'guest');
     }
+    
 }

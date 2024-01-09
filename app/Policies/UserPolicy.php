@@ -21,6 +21,7 @@ public function boot()
 namespace App\Policies;
 
 use App\Models\User;
+use \Illuminate\Support\Facades\Log;
 
 
 class UserPolicy
@@ -28,16 +29,30 @@ class UserPolicy
     /**
      * Determine whether the user can view any models.
      */
-    public function viewAny(User $user): bool
+    public function index(User $user): bool
     {
         
+        return true;
+    }
+
+
+    /**
+     * Determine whether the user can create models.
+     */
+    public function store(User $user): bool
+    {
         return $user->hasRole('admin');
     }
+    public function register(User $user): bool
+    {
+        return true;
+    }
+
 
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, User $model): bool
+    public function show(User $user): bool
     {
         //Ya que la tabla usuarios sólo es accesible por autenticación
         //cualquier rol puede ver los usuarios.
@@ -46,17 +61,9 @@ class UserPolicy
     }
 
     /**
-     * Determine whether the user can create models.
-     */
-    public function create(User $user): bool
-    {
-        return $user->hasRole('admin');
-    }
-
-    /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, User $model): bool
+    public function update(User $user): bool
     {
         return $user->hasRole('admin');
     }
@@ -64,25 +71,11 @@ class UserPolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, User $model): bool
+    public function destroy(User $user): bool
     {
         return $user->hasRole('admin');
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
-    public function restore(User $user, User $model): bool
-    {
-        return $user->hasRole('admin');
-    }
 
-    /**
-     * Determine whether the user can permanently delete the model.
-     */
-    public function forceDelete(User $user, User $model): bool
-    {
-        return $user->hasRole('admin');
-    }
 
 }
