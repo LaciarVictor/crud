@@ -4,6 +4,7 @@ namespace App\Interfaces;
 
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Http\JsonResponse;
 interface ICrudable
 
 {
@@ -31,9 +32,10 @@ interface ICrudable
      * Si hay datos, devuelve el resultado paginado.
      *
      * @param integer $perPage
-     * @return LengthAwarePaginator|null
+     * @return LengthAwarePaginator 
+     * @return JsonResponse
      */
-    public function findAllModels(int $perPage = 10): ?LengthAwarePaginator;
+    public function findAllModels(int $perPage = 10): LengthAwarePaginator | JsonResponse;
 
 
 

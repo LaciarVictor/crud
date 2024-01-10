@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Interfaces\ICrudable;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Http\JsonResponse;
 
 /**
 * Clase abstracta que define los metodos comunes para las operaciones CRUD.
@@ -50,8 +51,9 @@ abstract class CrudService implements ICrudable
      */
     public function update(int $id, object $request): ?Model
     {
-        $model = $this->findModelById($id);
         $validationRequest = $request->validated();
+
+        $model = $this->findModelById($id);
 
         if ($model) {
             $model->fill($validationRequest);
@@ -91,12 +93,14 @@ abstract class CrudService implements ICrudable
 
 
     /**
-     * Devuelve todos los registros del modelo paginados. Por defecto devuelve 10 registros.
-     * 
+     * Busca todos los modelos existentes en la base de datos.
+     * Si hay datos, devuelve el resultado paginado.
+     *
      * @param integer $perPage
-     * @return LengthAwarePaginator
+     * @return LengthAwarePaginator 
+     * @return JsonResponse
      */
-    public function findAllModels(int $perPage = 10): ? LengthAwarePaginator
+    public function findAllModels(int $perPage = 10): LengthAwarePaginator | JsonResponse
     {
         return $this->model->paginate($perPage);
     }

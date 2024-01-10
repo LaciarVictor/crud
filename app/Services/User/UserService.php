@@ -17,6 +17,7 @@ use DateTime;
 use Illuminate\Support\Facades\Hash;
 
 use Illuminate\Pagination\LengthAwarePaginator;
+
 use Illuminate\Pagination\Paginator;
 
 use Illuminate\Http\JsonResponse;
@@ -30,11 +31,13 @@ use Throwable;
 class UserService extends CrudService implements ICrudable
 {
     protected $authservice;
+    protected $customLengthAwarePaginator;
 
     public function __construct(User $user, AuthService $authService)
     {
         parent::__construct($user);
         $this->authservice = $authService;
+
     }
 
 
@@ -182,17 +185,18 @@ class UserService extends CrudService implements ICrudable
      * Find all models.
      *
      * @param int $perPage El número de usuarios por página (por defecto: 10)
-     * @return LengthAwarePaginator|null Los usuarios paginados o null si la tabla está vacía
+     * @return  LengthAwarePaginator
+     * @return JsonResponse
      * @throws \Exception Si ocurre un error durante la ejecución de la función.
      */
-    public function findAllModels($perPage = 10): ?LengthAwarePaginator
+         public function findAllModels($perPage = 10): LengthAwarePaginator | JsonResponse
     {
         try {
             //Busca todos los usuarios y los pagina
             $usersPaginator = $this->model->with('roles:id')->paginate($perPage);
 
             if ($usersPaginator->isEmpty()) {
-                return null; // Retorna null si la tabla está vacía
+                return response()->json(['message' => 'No hay usuarios registrados.']); 
             }
             // Formatea los usuarios para que el rol aparezca en la misma llave.
             $formattedUsers = collect($usersPaginator->items())->map(function ($user) {
@@ -225,7 +229,12 @@ class UserService extends CrudService implements ICrudable
 
 
 
-
+/**
+ * Undocumented function
+ *
+ * @param integer $userId
+ * @return JsonResponse
+ */
     public function findUser(int $userId): JsonResponse
     {
         try {
@@ -317,6 +326,10 @@ class UserService extends CrudService implements ICrudable
     private function setRole(?string $role, User $user): void
     {
 
+        if($user->roles->count() > 0){
+            $user->syncRoles($role?: 'guest');
+        }
+        
         $user->assignRole($role?: 'guest');
     }
     

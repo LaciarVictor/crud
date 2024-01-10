@@ -53,7 +53,7 @@ class UserController extends Controller
      *
      * @return ?LengthAwarePaginator
      */
-    public function index(): ?LengthAwarePaginator
+    public function index(): LengthAwarePaginator | JsonResponse
     {
         $this->authorize('index', User::class);
 
