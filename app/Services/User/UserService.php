@@ -11,6 +11,7 @@ use App\Models\User;
 use Spatie\Permission\Models\Role;
 
 use App\Http\Requests\UserRequests\UserCreateRequest;
+use App\Http\Requests\UserRequests\UserRegisterRequest;
 use App\Http\Requests\UserRequests\UserUpdateRequest;
 use App\Http\Requests\UserRequests\UserLoginRequest;
 use DateTime;
@@ -80,10 +81,10 @@ class UserService extends CrudService implements ICrudable
     /**
      * Registra a un usuario.
      *
-     * @param UserCreateRequest $request
+     * @param UserRegisterRequest $request
      * @return JsonResponse
      */
-    public function UserRegister(UserCreateRequest $request): JsonResponse
+    public function UserRegister(UserRegisterRequest $request): JsonResponse
     {
 
         try {

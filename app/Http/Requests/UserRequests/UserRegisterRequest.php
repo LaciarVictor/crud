@@ -5,7 +5,7 @@ namespace App\Http\Requests\UserRequests;
 use Illuminate\Validation\Rule;
 use App\Http\Requests\BaseRequest;
 
-class UserCreateRequest extends BaseRequest
+class UserRegisterRequest extends BaseRequest
 {
     /**
      * Get the validation rules that apply to the request.
@@ -21,6 +21,7 @@ class UserCreateRequest extends BaseRequest
             'phone_code' => ['nullable', 'string', 'max:4'],
             'phone_number' => ['nullable', 'string', 'max:100'],
             'email' => ['required', 'email', 'string', 'max:100', Rule::unique('users', 'email')],
+            'password' => ['required', 'min:6', 'confirmed'],
             'role' => ['nullable', Rule::exists('roles', 'name')],
         ];
     }
