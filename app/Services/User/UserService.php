@@ -37,7 +37,6 @@ class UserService extends CrudService implements ICrudable
     {
         parent::__construct($user);
         $this->authservice = $authService;
-
     }
 
 
@@ -189,14 +188,14 @@ class UserService extends CrudService implements ICrudable
      * @return JsonResponse
      * @throws \Exception Si ocurre un error durante la ejecución de la función.
      */
-         public function findAllModels($perPage = 10): LengthAwarePaginator | JsonResponse
+    public function findAllModels($perPage = 10): LengthAwarePaginator | JsonResponse
     {
         try {
             //Busca todos los usuarios y los pagina
             $usersPaginator = $this->model->with('roles:id')->paginate($perPage);
 
             if ($usersPaginator->isEmpty()) {
-                return response()->json(['message' => 'No hay usuarios registrados.']); 
+                return response()->json(['message' => 'No hay usuarios registrados.']);
             }
             // Formatea los usuarios para que el rol aparezca en la misma llave.
             $formattedUsers = collect($usersPaginator->items())->map(function ($user) {
@@ -229,12 +228,12 @@ class UserService extends CrudService implements ICrudable
 
 
 
-/**
- * Undocumented function
- *
- * @param integer $userId
- * @return JsonResponse
- */
+    /**
+     * Undocumented function
+     *
+     * @param integer $userId
+     * @return JsonResponse
+     */
     public function findUser(int $userId): JsonResponse
     {
         try {
@@ -306,10 +305,10 @@ class UserService extends CrudService implements ICrudable
     }
 
     function formattedDate($timestamp): string
-     {
+    {
         // Crear un objeto DateTime a partir del timestamp
         $date = new DateTime($timestamp);
-    
+
         // Reformatear la fecha al formato dd:mm:yyyy
         return $date->format('d/m/Y');
     }
@@ -326,11 +325,15 @@ class UserService extends CrudService implements ICrudable
     private function setRole(?string $role, User $user): void
     {
 
-        if($user->roles->count() > 0){
-            $user->syncRoles($role?: 'guest');
+        //El usuario ya tiene un rol, cambiar el rol
+        if ($user->roles->count() > 0) {
+
+            $user->syncRoles($role ?: 'guest');
+            
+        } else {
+
+            //Asignar uno nuevo
+            $user->assignRole($role ?: 'guest');
         }
-        
-        $user->assignRole($role?: 'guest');
     }
-    
 }
