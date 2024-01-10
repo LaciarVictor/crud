@@ -238,7 +238,7 @@ class UserService extends CrudService implements ICrudable
     {
         try {
             $user = $this->model->with('roles:id')->findOrFail($userId);
-            return $this->setJSONResponse($user);
+            return response()->json($this->setJSONResponse($user));
         } catch (ValidationException $ex) {
             return response()->json(['message' => $ex->validator->errors()], 422);
         } catch (Exception $ex) {
