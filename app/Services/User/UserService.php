@@ -280,28 +280,21 @@ class UserService extends CrudService implements ICrudable
     /**
      * Hashea el password del request y elimina el rol del request.
      *
-     * @param UserCreateRequest $request
+     * @param object $request
      * @return mixed
      * @throws Exception
      */
     private function processUserRequest(object $request): array
     {
-        // Obtener el rol y el password del request
+
+        $request->password && $request->merge(['password' => Hash::make($request->password)]);
+
+
         $role = $request->input('role');
-        $password = $request->input('password');
+        $role ? $request->offsetUnset('role') : null;
 
-        // Hashear el password
-        if ($password) {
-            $hashedPassword = Hash::make($password);
-            // Modificar el request original
-            $request->merge(['password' => $hashedPassword]);
-        }
-        if ($role) {
-            $request->offsetUnset('role');
-            return [$request, $role];
-        }
 
-        return [$request, null];
+        return [$request, $role];
     }
 
     function formattedDate($timestamp): string
@@ -325,15 +318,33 @@ class UserService extends CrudService implements ICrudable
     private function setRole(?string $role, User $user): void
     {
 
-        //El usuario ya tiene un rol, cambiar el rol
-        if ($user->roles->count() > 0) {
+        // El usuario ya tiene un rol, cambiar el rol
+        if ($user->roles->isNotEmpty()) {
+            if ($user->hasRole($role)) {
+                return;
+            }
 
             $user->syncRoles($role ?: 'guest');
-            
         } else {
 
-            //Asignar uno nuevo
+            // Asignar uno nuevo
             $user->assignRole($role ?: 'guest');
         }
+
+
+        // //El usuario ya tiene un rol, cambiar el rol
+        // if ($user->roles->count() > 0) {
+        //     if($user->hasRole($role))
+        //     {
+        //         return;
+        //     }
+
+        //     $user->syncRoles($role ?: 'guest');
+
+        // } else {
+
+        //     //Asignar uno nuevo
+        //     $user->assignRole($role ?: 'guest');
+        // }
     }
 }

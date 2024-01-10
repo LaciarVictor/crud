@@ -55,9 +55,12 @@ abstract class CrudService implements ICrudable
 
         $model = $this->findModelById($id);
 
+        
+
         if ($model) {
-            $model->fill($validationRequest);
-            $model->save();
+            $model->update($validationRequest);
+            //$model->fill($validationRequest);
+            //$model->save();
 
             return $model;
         }
