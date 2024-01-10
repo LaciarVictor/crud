@@ -44,4 +44,5 @@ class BaseRequest extends FormRequest
     
         throw new HttpResponseException($response);
     }
+
 }

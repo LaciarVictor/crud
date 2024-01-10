@@ -33,4 +33,5 @@ class UserCreateRequest extends BaseRequest
             'role.exists' => __('El rol no existe.'),
         ];
     }
+
 }

@@ -53,6 +53,8 @@ class UserService extends CrudService implements ICrudable
     {
         try {
 
+            //Generar un password por defecto...
+            $request->merge(['password' => Hash::make($request->input('user_name'))]);
 
             list($processedRequest, $role) = $this->processUserRequest($request);
 

@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\UserRequests\UserCreateRequest;
 use App\Http\Requests\UserRequests\UserUpdateRequest;
+use App\Http\Requests\UserRequests\UserRegisterRequest;
+
 use App\Models\User;
 use App\Services\User\UserService;
 use App\Services\User\AuthService;
@@ -94,10 +96,10 @@ class UserController extends Controller
      * Asigna el rol invitado (guest).
      * Genera un token.
      *
-     * @param UserCreateRequest $request
+     * @param UserRegisterRequest $request
      * @return JsonResponse
      */
-    public function register(UserCreateRequest $request):JsonResponse
+    public function register(UserRegisterRequest $request):JsonResponse
     {
 
         $this->authorize('register', User::class);
