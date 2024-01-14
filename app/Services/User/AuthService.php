@@ -39,7 +39,7 @@ class AuthService
 
             $accessToken = $this->createUserAccessToken($user);
 
-            return response()->json($this->setJSONResponse($user,$accessToken));
+            return response()->json(['message' => 'Inicio de sesión exitoso.', 'user' => $this->setJSONResponse($user), 'token' => $accessToken], 200);
         } catch (Exception $ex) {
             return response()->json(['message' => "Error loguando al usuario.", 'error' => $ex->getMessage()], 500);
         }
@@ -141,7 +141,7 @@ class AuthService
 
 
 
-    public function setJSONResponse($userData, $token): array
+    public function setJSONResponse($userData): array
     {
         $user = $userData;
 
@@ -160,8 +160,7 @@ class AuthService
             'email' => $user->email,
             'created_at' => $this->formattedDate($user->created_at),
             'updated_at' => $this->formattedDate($user->updated_at),
-            'role' => $role_name,
-            'token' => $token
+            'role' => $role_name
         ];
     }
 
