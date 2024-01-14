@@ -102,7 +102,7 @@ class UserController extends Controller
     public function register(UserRegisterRequest $request):JsonResponse
     {
 
-        $this->authorize('register', User::class);
+        
         return $this->userService->userRegister($request);
 
 

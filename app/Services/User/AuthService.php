@@ -9,6 +9,8 @@ use Illuminate\Http\JsonResponse;
 use Laravel\Sanctum\PersonalAccessToken;
 use Carbon\Carbon;
 use App\Models\User;
+use App\Models\Role;
+use DateTime;
 
 use Exception;
 
@@ -37,7 +39,7 @@ class AuthService
 
             $accessToken = $this->createUserAccessToken($user);
 
-            return response()->json(['message' => "Login existoso!",'token' => $accessToken]);
+            return response()->json($this->setJSONResponse($user,$accessToken));
         } catch (Exception $ex) {
             return response()->json(['message' => "Error loguando al usuario.", 'error' => $ex->getMessage()], 500);
         }
@@ -135,5 +137,40 @@ class AuthService
                 $token->delete();
             }
         });
+    }
+
+
+
+    public function setJSONResponse($userData, $token): array
+    {
+        $user = $userData;
+
+        $role_id = $user->roles->first()->id;
+
+        $role_name = Role::where('id', $role_id)->first()->name;
+
+
+        return [
+            'id' => $user->id,
+            'user_name' => $user->user_name,
+            'first_name' => $user->first_name,
+            'last_name' => $user->last_name,
+            'phone_code' => $user->phone_code,
+            'phone_number' => $user->phone_number,
+            'email' => $user->email,
+            'created_at' => $this->formattedDate($user->created_at),
+            'updated_at' => $this->formattedDate($user->updated_at),
+            'role' => $role_name,
+            'token' => $token
+        ];
+    }
+
+    function formattedDate($timestamp): string
+    {
+        // Crear un objeto DateTime a partir del timestamp
+        $date = new DateTime($timestamp);
+
+        // Reformatear la fecha al formato dd:mm:yyyy
+        return $date->format('d/m/Y');
     }
 }

@@ -38,4 +38,24 @@ Route::middleware('auth:sanctum',AuthMiddleware::class)->group(function () {
     Route::apiResource('roles', RoleController::class);
 
 });
-//Aquí debería poner un grupo de rutas con middleware para los usuarios con el rol guest.
+
+
+/*
+
+Route::middleware('role:guest')->group(function () {
+    // Aquí puedes definir las rutas específicas para los usuarios con el rol "guest"
+    $companies = Company::all();
+
+    foreach ($companies as $company) {
+        $slug = Str::slug($company->name);
+        $companyRoute = '/api/' . $slug;
+
+        Route::group(['prefix' => $companyRoute], function () use ($company) {
+            // Aquí puedes definir las rutas específicas para la empresa
+            Route::get('/', function () use ($company) {
+                return "Rutas específicas para la empresa: " . $company->name;
+            });
+        });
+    }
+});
+*/

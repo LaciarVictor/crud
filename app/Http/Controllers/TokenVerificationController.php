@@ -29,9 +29,9 @@ class TokenVerificationController extends Controller
         if ($token && $user) {   
 
             //return response()->json(['status' => true]);
-            return response()->json(['status' => true, 'user' => $user]);
+            return response()->json(['status' => true, 'user' => $user],200);
         }
 
-        return response()->json(['status' => false]);
+        return response()->json(['status' => false],401);
     }
 }

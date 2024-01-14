@@ -1,5 +1,22 @@
 <?php
-
+/**
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * NO TOCAR!!!
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ * 
+ */
 namespace App\Services;
 
 use App\Interfaces\ICrudable;
@@ -36,7 +53,7 @@ abstract class CrudService implements ICrudable
      */
     public function create(object $request): ?Model
     {
-        $modelData = $request->validated();
+        $modelData = $request->validate();
         $model = $this->model->create($modelData);
 
         return $model;
@@ -46,7 +63,7 @@ abstract class CrudService implements ICrudable
      * Actualiza la instancia del modelo y la guarda en la base de datos.
      *
      * @param integer $id
-     * @param object $request
+     * @param UserCreateRequest $request
      * @return Model|null
      */
     public function update(int $id, object $request): ?Model

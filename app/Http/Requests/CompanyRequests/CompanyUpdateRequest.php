@@ -5,7 +5,7 @@ namespace App\Http\Requests\CompanyRequests;
 use Illuminate\Validation\Rule;
 use App\Http\Requests\BaseRequest;
 
-class CompanyCreateRequest extends BaseRequest
+class CompanyUpdateRequest extends BaseRequest
 {
     /**
      * Get the validation rules that apply to the request.

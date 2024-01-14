@@ -53,8 +53,8 @@ class UserService extends CrudService implements ICrudable
     {
         try {
 
-            //Generar un password por defecto...
-            $request->merge(['password' => $request->input('user_name')]);
+            $request= $request->merge(['password' => $request->user_name]);
+
 
             list($processedRequest, $role) = $this->processUserRequest($request);
 
@@ -289,9 +289,11 @@ class UserService extends CrudService implements ICrudable
      */
     private function processUserRequest(object $request): array
     {
-
-        $request->password && $request->merge(['password' => Hash::make($request->password)]);
-
+        $hasPassword = $request->input('password');
+        
+        if ($hasPassword) {
+            $request->merge(['password' => Hash::make($request->password)]);
+        }
 
         $role = $request->input('role');
         $role ? $request->offsetUnset('role') : null;
