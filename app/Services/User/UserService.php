@@ -323,6 +323,9 @@ class UserService extends CrudService implements ICrudable
     private function setRole(?string $role, User $user): void
     {
 
+        if ($role == null) {
+            return;
+        }
         // El usuario ya tiene un rol, cambiar el rol
         if ($user->roles->isNotEmpty()) {
             if ($user->hasRole($role)) {
