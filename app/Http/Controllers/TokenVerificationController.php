@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Services\User\AuthService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Services\User\UserService;
 
 
 /**
@@ -28,8 +30,10 @@ class TokenVerificationController extends Controller
         // Si hay un token valido, y asignado a un usuario...
         if ($token && $user) {   
 
-            //return response()->json(['status' => true]);
-            return response()->json(['status' => true, 'user' => $user],200);
+            $authService = new AuthService();
+            $userService= new UserService($user, $authService);
+            $response = $userService->setJSONResponse($user);
+            return response()->json(['status' => true, 'user' => $response],200);
         }
 
         return response()->json(['status' => false],401);
